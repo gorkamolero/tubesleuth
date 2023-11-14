@@ -44,6 +44,8 @@ export default async ({ req, res, log, error }) => {
         fs.createReadStream(tempFile)
       )
 
+      console.log("hello")
+
       // Clean up the temporary file
       fs.unlinkSync(tempFile)
 
