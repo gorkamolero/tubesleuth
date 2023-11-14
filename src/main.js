@@ -20,8 +20,10 @@ export default async ({ req, res, log, error }) => {
 
   if (req.method === "POST") {
     try {
+      log("Request received")
       // Assuming the script is sent in the request body
       const script = req.payload.script
+      log("Script:", script)
 
       // Perform text-to-speech conversion
       const mp3Response = await openai.audio.speech.create({
@@ -44,6 +46,8 @@ export default async ({ req, res, log, error }) => {
 
       // Clean up the temporary file
       fs.unlinkSync(tempFile)
+
+      log("File uploaded:", result.$url)
 
       // Return the response with file ID or URL, with status
       return res.json({
