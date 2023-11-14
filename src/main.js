@@ -11,8 +11,10 @@ export default async ({ req, res, log, error }) => {
   // Initialize Appwrite Client
   const client = new Client()
     .setEndpoint("https://cloud.appwrite.io/v1") // Replace with your Appwrite endpoint
-    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-    .setKey(process.env.APPWRITE_API_KEY)
+    .setProject("6553848ab09a8a1f0930")
+    .setKey(
+      "26e2aba252d41a0186caac24392804dc71781cd4d82e56619dfa75bea73f95611ab0e5403c084912e31fe3f5f353e8459d745d34783a42c480f77b5595fdcf0d6f01d7b7ce8680fe31e3994f4cb2f765694d0217095aae49458df14ba8e2c0a82298ae241027836a8acacf1483af814f56930a7b983701d0810a2c8d11606241"
+    )
 
   const storage = new Storage(client)
 
@@ -35,7 +37,7 @@ export default async ({ req, res, log, error }) => {
 
       // Create a file in Appwrite storage
       const result = await storage.createFile(
-        process.env.APPWRITE_BUCKET_ID,
+        "gorkagi",
         uuidv4(), // Generating a unique ID for the file
         fs.createReadStream(tempFile)
       )
