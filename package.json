@@ -5,9 +5,13 @@
   "main": "src/main.js",
   "type": "module",
   "scripts": {
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "run-voiceover": "node src/agents/voiceover.js",
+    "run-image-generator": "node src/agents/image-generator.js"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
+    "expo-file-system": "^15.6.0",
     "fs": "^0.0.1-security",
     "node-appwrite": "^9.0.0",
     "openai": "^4.17.5",
