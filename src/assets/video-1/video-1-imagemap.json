@@ -1,0 +1,66 @@
+[
+  {
+    "id": 0,
+    "start": 0,
+    "end": 3.54,
+    "description": "A misty ancient water body with faint whispers echoing around.",
+    "effect": "Fade in from black",
+    "ffmpeg_code": "fade=t=in:st=0:d=3.54"
+  },
+  {
+    "id": 1,
+    "start": 3.54,
+    "end": 9.86,
+    "description": "A montage of ancient civilizations (Mesopotamian, Norse, Maya) with a looming storm in the background.",
+    "effect": "Cross dissolve between images",
+    "ffmpeg_code": "xfade=transition=dissolve:duration=6.32"
+  },
+  {
+    "id": 2,
+    "start": 9.86,
+    "end": 14.88,
+    "description": "Illustration of the Epic of Gilgamesh with dark rain clouds and a biblical Ark in tumultuous waters.",
+    "effect": "Pan across illustrations",
+    "ffmpeg_code": "zoompan=z='if(lte(zoom,1.0),1.2,max(1.001,zoom-0.001))':d=300:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+  },
+  {
+    "id": 3,
+    "start": 14.88,
+    "end": 26.2,
+    "description": "Norse icy landscapes with a massive wave, and Maya cities with rising floodwaters.",
+    "effect": "Cut to Norse scene then to Maya scene",
+    "ffmpeg_code": "cut=start=14.88:end=20.44, cut=start=20.44:end=26.2"
+  },
+  {
+    "id": 4,
+    "start": 26.2,
+    "end": 35.6,
+    "description": "A globe with highlighted regions of these stories, connected by water waves.",
+    "effect": "Slow zoom in on globe",
+    "ffmpeg_code": "zoompan=z='zoom+0.001':d=300:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+  },
+  {
+    "id": 5,
+    "start": 35.6,
+    "end": 43.48,
+    "description": "Shadowy figures pondering over ancient texts, surrounded by artifacts.",
+    "effect": "Fade between figures and artifacts",
+    "ffmpeg_code": "xfade=transition=fade:duration=7.88"
+  },
+  {
+    "id": 6,
+    "start": 43.48,
+    "end": 52.44,
+    "description": "A diver exploring underwater ruins with a flashlight, uncovering hidden inscriptions.",
+    "effect": "Gradual brightening effect on underwater scene",
+    "ffmpeg_code": "curves=all='0/0 0.22/0.5 1/1'"
+  },
+  {
+    "id": 7,
+    "start": 52.44,
+    "end": 56.97,
+    "description": "Waters retreating to reveal an ancient stone with inscriptions, then fading to the misty waters from the beginning.",
+    "effect": "Fade to ancient stone then back to misty waters",
+    "ffmpeg_code": "fade=t=out:st=52.44:d=2, fade=t=in:st=54.44:d=2.53"
+  }
+]

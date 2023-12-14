@@ -1,0 +1,37 @@
+[
+  {
+    "start": 0,
+    "end": 9.76,
+    "id": "flash-crash-onset",
+    "description": "The onset of the flash crash, depicting a normal trading day suddenly interrupted by a dramatic plummet in the Dow Jones Industrial Average, capturing the surprise and urgency of the moment.",
+    "effect": "ZoomOut"
+  },
+  {
+    "start": 9.76,
+    "end": 22.76,
+    "id": "market-turmoil",
+    "description": "Scenes of turmoil in the stock market, showing traders and investors worldwide reacting in disbelief as the Dow Jones drops over 1,000 points, highlighting the shock and rapidity of the event.",
+    "effect": "PanRight"
+  },
+  {
+    "start": 22.76,
+    "end": 35.08,
+    "id": "cause-and-effect",
+    "description": "Visual representation of the tangled web of automated high-frequency trading algorithms, illustrating their spiraling out of control and the ensuing domino effect on the market.",
+    "effect": "ZoomIn"
+  },
+  {
+    "start": 35.08,
+    "end": 44.32,
+    "id": "rapid-recovery",
+    "description": "Depiction of the market's swift recovery from the flash crash, focusing on the rebounding stock indices and the recoupment of losses, conveying a sense of resilience and unpredictability.",
+    "effect": "PanLeft"
+  },
+  {
+    "start": 44.32,
+    "end": 59.52,
+    "id": "lessons-and-legacy",
+    "description": "Scenes reflecting the aftermath and lessons learned from the flash crash, posing questions about its recurrence, intermixed with visuals symbolizing the adage that what goes down in stocks might come back up.",
+    "effect": "PanDown"
+  }
+]

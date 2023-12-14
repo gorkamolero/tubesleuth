@@ -4,6 +4,8 @@ import { fileURLToPath } from "url"
 
 import Creatomate from "creatomate"
 
+const color = `rgba(243,206,50,1)`
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -49,7 +51,7 @@ async function generateCaptions(videoNumber) {
       // Encapsulate each spoken word with an RGBA color tag, to make it slightly transparent
       const spokenWords = words.slice(0, i)
       if (spokenWords.length > 0) {
-        text += `[color rgba(255,255,255,0.4)]${spokenWords
+        text += `[color ${color}]${spokenWords
           .map((word) => word.content)
           .join(" ")}[/color] `
       }
@@ -90,7 +92,7 @@ export const captionStyles = {
   fontFamily: "Montserrat",
   textTransform: "uppercase",
   fontWeight: "800",
-  fontSize: "6 vh",
+  fontSize: "6.5 vh",
   fillColor: null,
   shadowColor: "rgba(0,0,0,0.65)",
   shadowBlur: "1.6 vmin",

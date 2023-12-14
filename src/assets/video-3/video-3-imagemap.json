@@ -1,0 +1,44 @@
+[
+  {
+    "start": 0,
+    "end": 4.34,
+    "id": "yugas-introduction",
+    "description": "A visual introduction to the concept of Yugas in Hindu texts, showing ancient manuscripts and cosmic cycles, culminating in the image of the Kali Yuga.",
+    "effect": "ZoomOut"
+  },
+  {
+    "start": 4.34,
+    "end": 8.92,
+    "id": "kali-yuga-darkness",
+    "description": "Depiction of the Kali Yuga, a dark age of turmoil and decline, represented by chaotic, turbulent imagery and a sense of foreboding.",
+    "effect": "PanDown"
+  },
+  {
+    "start": 8.92,
+    "end": 16.24,
+    "id": "modern-age-conflict",
+    "description": "Contemporary scenes reflecting conflict, deception, and disconnection, drawing parallels to the Kali Yuga, with a hint of skepticism about the truths we accept.",
+    "effect": "PanLeft"
+  },
+  {
+    "start": 16.24,
+    "end": 27.04,
+    "id": "signs-of-times",
+    "description": "Imagery showing erosion of values and a world in chaos, overlaid with ancient symbols from Hindu texts, suggesting a connection between past prophecies and present realities.",
+    "effect": "ZoomIn"
+  },
+  {
+    "start": 27.04,
+    "end": 37.64,
+    "id": "reflection-and-echo",
+    "description": "Metaphorical representation of the Kali Yuga's influence over modern civilization, with shadows and echoes symbolizing the cyclical nature of time and truth.",
+    "effect": "PanRight"
+  },
+  {
+    "start": 37.64,
+    "end": 49.76,
+    "id": "cycle-completion-rebirth",
+    "description": "Visuals depicting the closing of a cycle and the onset of rebirth, blending imagery of darkness turning to light, symbolizing hope and renewal at the end of the Kali Yuga.",
+    "effect": "ZoomOut"
+  }
+]

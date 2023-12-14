@@ -1,4 +1,5 @@
 import Creatomate from "creatomate"
+import { video } from "../../config/config.js"
 
 function createFirebaseImageURL(index, video) {
   const imagePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets%2Fvideo-${video}%2Fvideo-${video}-image-${
@@ -44,13 +45,14 @@ export function convertImageMapToCreatomate(images) {
       transition = new Creatomate.Fade()
     }
 
-    const imageBuffer = createFirebaseImageURL(index, 1)
+    const imageBuffer = createFirebaseImageURL(index, video)
 
     return new Creatomate.Image({
       track: 1,
       duration: image.end - image.start,
       source: imageBuffer,
       animations: [animation],
+      // transition: if last, non
       transition: transition,
     })
   })
@@ -66,14 +68,12 @@ export const backgroundMusicCreatomate = (choice) => {
     source: backgroundMusic,
     // Make the audio track as long as the output
     duration: null,
-    // Fade out for 2 seconds
-    audioFadeOut: 2,
     volume: 20,
   })
 }
 
 export const voiceOver = (video) => {
-  const voiceOverURL = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets%2Fvideo-1%2Fvideo-${video}-voiceover.mp3?alt=media`
+  const voiceOverURL = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets%2Fvideo-${video}%2Fvideo-${video}-voiceover.mp3?alt=media`
 
   return new Creatomate.Audio({
     source: voiceOverURL,

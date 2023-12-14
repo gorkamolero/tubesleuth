@@ -1,0 +1,37 @@
+[
+  {
+    "start": 0,
+    "end": 9,
+    "id": "atlantis-and-skepticism",
+    "description": "A juxtaposition of the mythical Atlantis, with its advanced architecture and glittering waters, against the backdrop of a skeptical Aristotle, symbolizing the clash between legend and skepticism.",
+    "effect": "ZoomOut"
+  },
+  {
+    "start": 9,
+    "end": 15,
+    "id": "crantor-quest",
+    "description": "Historian Crantor embarking on his journey, depicted in an ancient Egyptian library, surrounded by scrolls and artifacts, capturing his determination to unravel the mystery of Atlantis.",
+    "effect": "PanRight"
+  },
+  {
+    "start": 15,
+    "end": 23,
+    "id": "catastrophe-and-discovery",
+    "description": "A dramatic scene showing ancient scrolls revealing a catastrophic event, with Crantor's eyes widening as he connects the clues, symbolizing the moment of discovery and realization.",
+    "effect": "ZoomIn"
+  },
+  {
+    "start": 23,
+    "end": 33,
+    "id": "myth-history-connection",
+    "description": "A blend of mystical and historical imagery, reflecting the blurring lines between myth and reality in the search for Atlantis, with a focus on the philosophical aspect represented by Aristotle.",
+    "effect": "PanDown"
+  },
+  {
+    "start": 33,
+    "end": 43,
+    "id": "truth-and-legacy",
+    "description": "A scene of submerged ruins under the sea, possibly Atlantis, with a questioning figure in the foreground, symbolizing the eternal quest for truth and the legacy of a legend that continues to fascinate.",
+    "effect": "PanLeft"
+  }
+]

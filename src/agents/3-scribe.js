@@ -1,6 +1,15 @@
+import fs from "fs"
+import path from "path"
+import OpenAI from "openai"
+import dotenv from "dotenv"
+import { fileURLToPath } from "url"
+import { video } from "../config/config.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 // Initialize OpenAI client
 const parsedEnv = dotenv.config().parsed
-const apiKey = parsedEnv.OPENAI_KEY_2
+const apiKey = parsedEnv.OPENAI_API_KEY
 
 if (!apiKey) {
   console.error(
