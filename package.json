@@ -10,6 +10,7 @@
     "run-image-generator": "node src/agents/image-generator.js"
   },
   "dependencies": {
+    "audio-2.0.0": "^2.0.0",
     "buffer": "^6.0.3",
     "creatomate": "^1.0.6",
     "expo-file-system": "^15.6.0",

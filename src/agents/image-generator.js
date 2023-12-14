@@ -1,12 +1,3 @@
-import OpenAI from "openai"
-import fs from "fs"
-import path from "path"
-import { fileURLToPath } from "url"
-import dotenv from "dotenv"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
 // Initialize OpenAI client
 const parsedEnv = dotenv.config().parsed
 const apiKey = parsedEnv.OPENAI_KEY_2
@@ -21,13 +12,9 @@ if (!apiKey) {
 const openai = new OpenAI({
   apiKey,
 })
-console.log(process.cwd())
-console.log(__dirname)
+const videopath = `../assets/video-${video}/video-${video}-voiceover.mp3`
 // Path to your audio file
-const audioFilePath = path.resolve(
-  __dirname,
-  "../assets/a9b02679-3558-4a13-99c1-00cc5ef2c05d.mp3"
-)
+const audioFilePath = path.resolve(__dirname, videopath)
 
 // Read the audio file
 const audioFile = fs.createReadStream(audioFilePath)
@@ -56,6 +43,22 @@ async function transcribeAudio() {
     })
 
     const remappedTranscript = remapTranscript(transcript)
+
+    // Define the path for the JSON file
+    const jsonFilePath = path.resolve(
+      __dirname,
+      `../assets/video-${video}/video-${video}-transcript.json`
+    )
+
+    // Ensure the directory exists
+    const dir = path.dirname(jsonFilePath)
+    await fs.promises.mkdir(dir, { recursive: true })
+
+    // Write the remapped transcript to the JSON file
+    await fs.promises.writeFile(
+      jsonFilePath,
+      JSON.stringify(remappedTranscript, null, 2)
+    )
 
     console.log("Transcription:", remappedTranscript)
   } catch (error) {
