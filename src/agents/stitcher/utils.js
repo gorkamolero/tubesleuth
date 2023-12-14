@@ -52,8 +52,8 @@ export function convertImageMapToCreatomate(images) {
       duration: image.end - image.start,
       source: imageBuffer,
       animations: [animation],
-      // transition: if last, non
-      transition: transition,
+      // transition: if last or first, none
+      ...(index === 0 || index === images.length - 1 ? {} : { transition }),
     })
   })
 }
