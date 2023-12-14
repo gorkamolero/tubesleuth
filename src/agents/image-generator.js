@@ -26,7 +26,7 @@ console.log(__dirname)
 // Path to your audio file
 const audioFilePath = path.resolve(
   __dirname,
-  "../assets/5675035d-78c5-4468-9175-e52b448de6fa.mp3"
+  "../assets/a9b02679-3558-4a13-99c1-00cc5ef2c05d.mp3"
 )
 
 // Read the audio file

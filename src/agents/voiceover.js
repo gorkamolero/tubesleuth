@@ -2,9 +2,11 @@ import OpenAI from "openai"
 import fs from "fs"
 import path from "path"
 import { v4 as uuidv4 } from "uuid"
+import dotenv from "dotenv"
 
 // Initialize OpenAI client
-const apiKey = process.env.OPENAI_API_KEY
+const parsedEnv = dotenv.config().parsed
+const apiKey = parsedEnv.OPENAI_KEY_2
 
 if (!apiKey) {
   console.error(
@@ -21,7 +23,7 @@ async function convertTextToSpeech(script) {
   try {
     // Perform text-to-speech conversion
     const mp3Response = await openai.audio.speech.create({
-      model: "canary-tts",
+      model: "tts-1",
       voice: "onyx",
       input: script,
     })
@@ -39,6 +41,6 @@ async function convertTextToSpeech(script) {
 
 // Example script to convert
 const script =
-  "It was May 6, 2010, a seemingly ordinary day in the stock market, until suddenly, at 2:45 PM, an unprecedented event occurred. The Dow Jones Industrial Average plummeted, losing over a thousand points in mere minutes. This shocking moment, later known as the 'Flash Crash,' had traders and investors worldwide staring at their screens in disbelief. How could billions of dollars vanish so quickly? The cause? A tangled web of automated high-frequency trading algorithms. They had spiraled out of control, triggering a domino effect. But just as suddenly as it fell, the market began to recover. By the end of the day, most of the losses had been recouped, leaving everyone puzzled. What lessons were learned from this digital age anomaly? Could it happen again? Follow for more moments in stock history. And remember, in the world of stocks, what goes down might just come back up, just like the story of the Flash Crash of 2010..."
+  "Have you ever heard the haunting whispers of ancient waters? Long ago, civilizations across the globe shared a chilling tale – a story of a great flood. In the heart of Mesopotamia, the Epic of Gilgamesh spoke of rains that engulfed the world, a narrative eerily mirrored in the biblical story of Noah. Far in the icy realms of the Norse, they too whispered of a massive deluge, where only two of every creature survived. Even the Maya, isolated in their majestic cities, foretold a flood sweeping away the old world. Each story, separated by oceans and centuries, shares an unexplained, sinister similarity. Were these mere myths or did they stem from a catastrophic event lost in time? Dive deep into the abyss of history with me, and we might just uncover the truth. Follow for more moments in stock history. But beware, for the waters may pull us back to the beginning, where the haunting whispers first began..."
 
 convertTextToSpeech(script)
