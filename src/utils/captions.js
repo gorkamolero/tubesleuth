@@ -3,8 +3,10 @@ import { fontColor as color } from "../config/config.js";
 import Creatomate from "creatomate";
 import { loadSegments } from "./loadSegments.js";
 
-async function generateCaptions(video) {
-  const segments = await loadSegments(video);
+async function generateCaptions(video, transcription) {
+  let segments = cleanSegments(
+    transcription ? transcription : await loadSegments(video),
+  );
 
   const keyframes = [];
 
