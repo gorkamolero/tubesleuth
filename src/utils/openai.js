@@ -75,7 +75,27 @@ export const askAssistant = async ({
   question,
   path,
   debug = false,
+  writersToLookUpTo,
+  styleInstructions,
 }) => {
+  // TODO: override instruction with writer styles and style
+
+  /*
+  Pseudo code:
+  const assistant = ...
+  const writerString = writersToLookUpto.map((writer, index) => {
+    // if last index
+    if (index ... writersToLookUpto.length) {
+      return writer
+    } else {
+      return `%{writer} and`
+    }
+  })
+
+  assistant.instructions.add(`Write in the style of ${writerstring}. ${styleInstructions}. `)
+  
+  */
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
