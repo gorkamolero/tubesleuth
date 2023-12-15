@@ -51,15 +51,11 @@ const stitchItAllUp = async ({ script, video, imageMap }) => {
       console.error("Failed to create directory", err);
     }
 
-    // write url with fs to a txt file and use it as name
-
     try {
       await fs.promises.writeFile(`${dir}/video-${video}-url.txt`, url);
     } catch (err) {
       console.error("Failed to write file", err);
     }
-
-    // return url;
 
     const output = {
       url,
@@ -67,7 +63,10 @@ const stitchItAllUp = async ({ script, video, imageMap }) => {
       title: script.title,
       description: script.description,
       tags: script.tags,
+      script: script.script,
     };
+
+    // TODO: upload to firestore
 
     console.log(JSON.stringify(output, null, 2));
 

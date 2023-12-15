@@ -39,4 +39,16 @@ const downloadFile = async (storageFilePath, localFilePath) => {
   return file;
 };
 
+/*
+
+TODO: upload stuff to firestore
+
+const firestore = ...
+
+export const uploadToFirestore = (object) => {
+  ...
+}
+
+*/
+
 export { uploadFile, uploadB64Image, downloadFile };
