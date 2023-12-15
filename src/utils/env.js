@@ -1,11 +1,21 @@
 import dotenv from "dotenv";
 
-const dotenvConfig = dotenv.config();
+const replitStrings = ["replit", "repl.it", "replit.com"];
+const isReplit = replitStrings.some((str) =>
+  window.location.href.includes(str),
+);
 
-if (dotenvConfig.error) {
-  throw new Error("Couldn't parse .env file");
+let processEnv;
+
+if (!isReplit) {
+  const dotenvConfig = dotenv.config();
+
+  if (dotenvConfig.error) {
+    throw new Error("Couldn't parse .env file");
+  }
+
+  processEnv = dotenvConfig.parsed;
+} else {
+  processEnv = process.env;
 }
-
-const processEnv = dotenvConfig.parsed;
-
 export default processEnv;
