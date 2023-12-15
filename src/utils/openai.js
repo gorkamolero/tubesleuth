@@ -3,6 +3,7 @@ import parseJson from "parse-json";
 import readline from "readline";
 import fs from "fs";
 import processEnv from "./env.js";
+import { styleInstructions, writersToLookUpTo } from "../config/config.js";
 
 const openai = new OpenAI({
   apiKey: processEnv.OPENAI_API_KEY,
@@ -75,8 +76,6 @@ export const askAssistant = async ({
   question,
   path,
   debug = false,
-  writersToLookUpTo,
-  styleInstructions,
 }) => {
   // TODO: override instruction with writer styles and style
 
@@ -116,10 +115,22 @@ export const askAssistant = async ({
 
     console.log(`⏱ OK, let's go`);
 
+    let stylePrompt = "";
+
+    if (writersToLookUpTo !== null) {
+      stylePrompt += `. Instead of writing it in the style of the writer I mentioned, write in the style of ${writersToLookUpTo.join(
+        ", ",
+      )}.`;
+    }
+
+    if (styleInstructions !== null) {
+      stylePrompt += ` ${styleInstructions}. `;
+    }
+
     const answer = await createThreadAndRun({
       instruction,
       assistant_id,
-      prompt,
+      prompt: `${prompt}${stylePrompt}`,
     });
 
     try {

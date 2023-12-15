@@ -31,6 +31,9 @@ async function generateAndUploadImage(video, description, index) {
     );
 
     console.log(`Image ${index} generated:`);
+
+    // TODO: get url here and send them to actual image
+
     try {
       console.log(await terminalImage.buffer(bufferObj));
     } catch (error) {}
@@ -46,6 +49,27 @@ async function generateAndUploadImage(video, description, index) {
     await fs.promises.mkdir(dir, { recursive: true });
 
     await fs.promises.writeFile(tempFile, bufferObj);
+
+    // TODO: ask if a number of images is wrong
+    /*
+    PSEUDO CODE
+
+    readline.prompt to user in emphatic fashion: if some images are not to your liking, say so. Otherwise the script will continue in 15s. You can change up to 5 images
+    
+    readline.prompt: ok, which are they? Input the numbers, separated by commas. 
+
+    // add to the prompt, for each of the images
+    
+    const regenerate = (array) // 2,5,7
+    for (const image of array.from(regenerate)) {
+      await ...
+    }
+
+    recursive function with different log: ok now, are we cool? yes / no. 15s
+
+    do this for a maximum of 5 images
+    
+    */
   } catch (error) {
     console.error("Error generating image:", error);
   }
