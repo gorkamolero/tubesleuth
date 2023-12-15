@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { formatTime } from "./utils/formatTime.js";
-import { cta } from "./config/config.js";
+import { cta, writersToLookUpTo, styleInstructions } from "./config/config.js";
 
 import processEnv from "./utils/env.js";
 
@@ -29,6 +29,8 @@ const init = async () => {
     path: `src/assets/video-${video}/video-${video}-script.json`,
     cta,
     debug: false,
+    writersToLookUpTo,
+    styleInstructions,
     // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
   });
 

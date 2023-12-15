@@ -1,3 +1,6 @@
+// obviously change this
+export const writersToLookUpTo = ["R. L. Stine"];
+export const styleInstructions = "Make it mysterious";
 export const cta = `What if what you've been told is all a lie? Follow to discover the truth`;
 
 export const imageStyle = "PHOTORREALISTIC"; // try "cartoon style, Salvador Dalí style or whatever you want"
