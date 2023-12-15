@@ -1,5 +1,4 @@
 import Creatomate from "creatomate"
-import { video } from "../../config/config.js"
 
 function createFirebaseImageURL(index, video) {
   const imagePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets%2Fvideo-${video}%2Fvideo-${video}-image-${
@@ -9,7 +8,7 @@ function createFirebaseImageURL(index, video) {
   return imagePath
 }
 
-export function convertImageMapToCreatomate(images) {
+export function convertImageMapToCreatomate({ script, images, video }) {
   return images.map((image, index) => {
     let animation
     if (image.animation === "ZoomIn") {
@@ -47,9 +46,15 @@ export function convertImageMapToCreatomate(images) {
 
     const imageBuffer = createFirebaseImageURL(index, video)
 
+    let duration = image.end - image.start
+    // if last item, choose script.duration as the end instead of image.end
+    if (index === images.length - 1) {
+      duration = script.duration - image.start
+    }
+
     return new Creatomate.Image({
       track: 1,
-      duration: image.end - image.start,
+      duration,
       source: imageBuffer,
       animations: [animation],
       // transition: if last or first, none
@@ -59,10 +64,16 @@ export function convertImageMapToCreatomate(images) {
 }
 
 export const backgroundMusicCreatomate = (choice) => {
+  const firebasepath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets%2Fmusic%2F`
   const choices = {
-    dynamic: `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets%2Fhenson-sahara-compressed.mp3?alt=media`,
+    powerful: `${firebasepath}powerful.mp3?alt=media`,
+    mysterious: `${firebasepath}mysterious.mp3?alt=media`,
+    sentimental: `${firebasepath}sentimental.mp3?alt=media`,
+    interesting: `${firebasepath}interesting.mp3?alt=media`,
+    deep: `${firebasepath}deep.mp3?alt=media`,
+    epic: `${firebasepath}epic.mp3?alt=media`,
   }
-  const backgroundMusic = choices[choice] || choices[dynamic]
+  const backgroundMusic = choices[choice] || choices.deep
 
   return new Creatomate.Audio({
     source: backgroundMusic,

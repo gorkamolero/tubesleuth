@@ -1,12 +1,14 @@
-import fs from "fs"
-import path from "path"
-import { uploadB64Image } from "../firebaseConnector.js"
-import { fileURLToPath } from "url"
-import { Buffer } from "buffer"
-import openai from "../utils/openai.js"
+import fs from "fs";
+import path from "path";
+import { uploadB64Image } from "../firebaseConnector.js";
+import { fileURLToPath } from "url";
+import { Buffer } from "buffer";
+import openai from "../utils/openai.js";
+import loadDescriptions from "../utils/loadDescriptions.js";
+import terminalImage from "terminal-image";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function generateAndUploadImage(video, description, index) {
   try {
@@ -18,59 +20,63 @@ async function generateAndUploadImage(video, description, index) {
 
       // b64_json or url
       response_format: "b64_json",
-    })
+    });
 
-    const image_b64 = response.data[0].b64_json
+    const image_b64 = response.data[0].b64_json;
 
-    const bufferObj = Buffer.from(image_b64, "base64")
+    const bufferObj = Buffer.from(image_b64, "base64");
 
     await uploadB64Image(
       bufferObj,
-      `assets/video-${video}/video-${video}-image-${index}.png`
-    )
+      `assets/video-${video}/video-${video}-image-${index}.png`,
+    );
 
-    console.log(`Image ${index} generated:`)
+    console.log(`Image ${index} generated:`);
+    try {
+      console.log(await terminalImage.buffer(bufferObj));
+    } catch (error) {}
 
     // write this image to a local file, too
     const tempFile = path.resolve(
       __dirname,
-      `../assets/video-${video}/video-${video}-image-${index}.png`
-    )
+      `../assets/video-${video}/video-${video}-image-${index}.png`,
+    );
 
     // Ensure the directory exists
-    const dir = path.dirname(tempFile)
-    await fs.promises.mkdir(dir, { recursive: true })
+    const dir = path.dirname(tempFile);
+    await fs.promises.mkdir(dir, { recursive: true });
 
-    await fs.promises.writeFile(tempFile, bufferObj)
+    await fs.promises.writeFile(tempFile, bufferObj);
   } catch (error) {
-    console.error("Error generating image:", error)
+    console.error("Error generating image:", error);
   }
 }
+
+const descriptMap = (userDescriptions) =>
+  userDescriptions.map((description) => description.description);
 
 async function generateImagesFromDescriptions(video, userDescriptions) {
   try {
     const descriptions = userDescriptions
-      ? userDescriptions
-      : await loadDescriptions(video)
+      ? descriptMap(userDescriptions)
+      : await loadDescriptions(video);
 
-    let index = 0
+    let index = 0;
     for (const description of descriptions) {
-      index++
-      generateAndUploadImage(video, description, index)
+      index++;
+      await generateAndUploadImage(video, description, index);
 
       // Wait 10 seconds between each request
-      await new Promise((resolve) => setTimeout(resolve, 10000))
+      await new Promise((resolve) => setTimeout(resolve, 10000));
     }
-
-    console.log("All images generated")
-    return true
+    return true;
   } catch (error) {
-    console.error(error)
+    console.error(error);
 
-    return false
+    return false;
   }
 }
 
 // generateImagesFromDescriptions()
 
-export default generateImagesFromDescriptions
+export default generateImagesFromDescriptions;

@@ -28,7 +28,6 @@ const uploadB64Image = async (
     contentType,
   })
 
-  console.log(`B64 uploaded to ${storageFilePath}.`)
   return file
 }
 

@@ -17,3 +17,5 @@ export async function loadDescriptions(video) {
 
   return descriptions
 }
+
+export default loadDescriptions

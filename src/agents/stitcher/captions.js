@@ -15,7 +15,13 @@ async function loadSegments(video) {
     `../../assets/video-${video}/video-${video}-transcript.json`
   )
   const data = await fs.promises.readFile(filePath, "utf-8")
-  const segments = JSON.parse(data)
+  let segments = JSON.parse(data)
+
+  // Iterate through each segment and remove all periods and commas from the text
+  segments.segments = segments.segments.map((segment) => {
+    segment.text = segment.text.replace(/[.,]/g, "")
+    return segment
+  })
 
   return segments
 }
@@ -92,10 +98,10 @@ export const captionStyles = {
   fontFamily: "Montserrat",
   textTransform: "uppercase",
   fontWeight: "800",
-  fontSize: "6.5 vh",
+  fontSize: "4.5vh",
   fillColor: null,
   shadowColor: "rgba(0,0,0,0.65)",
-  shadowBlur: "1.6 vmin",
+  shadowBlur: "1.6vmin",
 }
 
 export default generateCaptions

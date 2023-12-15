@@ -5,8 +5,8 @@ import { loadScript } from "../utils/loadScript.js"
 import openai from "../utils/openai.js"
 
 async function createVoiceover(video, userScript) {
-  let script
   try {
+    let script = userScript.script
     if (!userScript) {
       script = await loadScript(video)
     }
@@ -26,7 +26,9 @@ async function createVoiceover(video, userScript) {
       input: script,
     })
 
-    const buffer = Buffer.from(await mp3Response.arrayBuffer())
+    const arrayBuffer = await mp3Response.arrayBuffer()
+
+    const buffer = Buffer.from(arrayBuffer)
     await fs.promises.writeFile(tempFile, buffer)
 
     const contentType = "audio/mpeg"
@@ -36,8 +38,6 @@ async function createVoiceover(video, userScript) {
       `assets/video-${video}/video-${video}-voiceover.mp3`,
       contentType
     )
-
-    console.log("MP3 file saved to:", tempFile)
 
     return buffer
   } catch (error) {

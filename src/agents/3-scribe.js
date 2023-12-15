@@ -1,21 +1,32 @@
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
-import openai from "../utils/openai"
+import openai from "../utils/openai.js"
 import remapTranscript from "../utils/remapTranscript.js"
+import { toFile } from "openai"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 async function transcribeAudio(video, userAudioFile) {
   const videopath = `../assets/video-${video}/video-${video}-voiceover.mp3`
-  // Path to your audio file
-  const audioFilePath = path.resolve(__dirname, videopath)
 
-  // Read the audio file
-  const audioFile = fs.createReadStream(audioFilePath)
+  let audio
 
-  let audio = userAudioFile ? userAudioFile : audioFile
+  if (!userAudioFile) {
+    // Path to your audio file
+    const audioFilePath = path.resolve(__dirname, videopath)
+
+    // Read the audio file
+    const audioFile = fs.createReadStream(audioFilePath)
+
+    audio = audioFile
+  } else {
+    audio = await toFile(userAudioFile, "audio.mp3", {
+      contentType: "audio/mpeg",
+    })
+  }
+
   try {
     // Create a transcription request
     const transcript = await openai.audio.transcriptions.create({
@@ -41,8 +52,6 @@ async function transcribeAudio(video, userAudioFile) {
       jsonFilePath,
       JSON.stringify(remappedTranscript, null, 2)
     )
-
-    console.log("Transcription:", remappedTranscript)
 
     return remappedTranscript
   } catch (error) {

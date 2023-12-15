@@ -13,15 +13,15 @@ const apiKey = dotenv.config().parsed.CREATOMATE_API_KEY
 
 const client = new Creatomate.Client(apiKey)
 
-const stitchItAllUp = async (video, userImages) => {
+const stitchItAllUp = async ({ script, video, imageMap }) => {
   try {
     const { keyframes, duration } = await generateCaptions(video)
 
-    const images = userImages ? userImages : await loadImages(video)
+    const images = imageMap ? imageMap : await loadImages(video)
 
     const elements = [
-      ...convertImageMapToCreatomate(images),
-      backgroundMusicCreatomate("dynamic"),
+      ...convertImageMapToCreatomate({ script, images, video }),
+      backgroundMusicCreatomate(script?.mood || "deep"),
       voiceOver(video),
       new Creatomate.Text({
         ...captionStyles,
@@ -43,16 +43,27 @@ const stitchItAllUp = async (video, userImages) => {
     })
 
     const url = response[0].url
+
+    const dir = `./src/assets/video-${video}`
+
+    try {
+      await fs.promises.mkdir(dir, { recursive: true })
+    } catch (err) {
+      console.error("Failed to create directory", err)
+    }
+
     // write url with fs to a txt file and use it as name
-    await fs.promises.writeFile(`./src/assets/video-${video}/${url}`, url)
-    console.log(response)
+
+    try {
+      await fs.promises.writeFile(`${dir}/video-${video}-url.txt`, url)
+    } catch (err) {
+      console.error("Failed to write file", err)
+    }
 
     return url
   } catch (error) {
     console.error(error)
   }
 }
-
-// generate()
 
 export default stitchItAllUp
