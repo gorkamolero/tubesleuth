@@ -1,7 +1,8 @@
 {
-  "name": "starter-template",
+  "name": "tubesleuth-reloaded",
+  "author": "gorka",
   "version": "1.0.0",
-  "description": "",
+  "description": "the secret formula to wealth",
   "main": "src/main.js",
   "type": "module",
   "scripts": {
