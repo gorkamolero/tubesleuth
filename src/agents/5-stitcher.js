@@ -12,9 +12,12 @@ const apiKey = dotenv.config().parsed.CREATOMATE_API_KEY;
 
 const client = new Creatomate.Client(apiKey);
 
-const stitchItAllUp = async ({ script, video, imageMap }) => {
+const stitchItAllUp = async ({ script, video, imageMap, transcription }) => {
   try {
-    const { keyframes, duration } = await generateCaptions(video);
+    const { keyframes, duration } = await generateCaptions(
+      video,
+      transcription,
+    );
 
     const images = imageMap;
 
@@ -69,6 +72,16 @@ const stitchItAllUp = async ({ script, video, imageMap }) => {
     // TODO: upload to firestore
 
     console.log(JSON.stringify(output, null, 2));
+
+    // try to download video to local
+
+    try {
+      const download = await fetch(url);
+      const buffer = await download.buffer();
+      await fs.promises.writeFile(`${dir}/video-${video}-output.mp4`, buffer);
+    } catch (error) {
+      console.error("Failed to download file", error);
+    }
 
     return output;
   } catch (error) {
