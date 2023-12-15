@@ -1,31 +1,53 @@
-import prompts from "./prompts.json" assert { type: "json" }
 import dotenv from "dotenv"
-import fs from "fs"
+import { v4 as uuidv4 } from "uuid"
 
-const processEnv = dotenv.config().parsed
+const dotenvConfig = dotenv.config()
 
-import { askAssistant } from "../utils/openai.js"
+if (dotenvConfig.error) {
+  throw new Error("Couldn't parse .env file")
+}
+
+const processEnv = dotenvConfig.parsed
+
+import { askAssistant, promptAssistant } from "../utils/openai.js"
+import createVoiceover from "./2-voiceover.js"
+import transcribeAudio from "./3-scribe.js"
+import generateImagesFromDescriptions from "./4-painter.js"
+import stitchItAllUp from "./stitcher/index.js"
 
 const init = async () => {
-  let index = 10
-  for (const prompt of prompts) {
-    const answer = await askAssistant({
-      assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
-      prompt: `TITLE: ${prompt.title}, DESCRIPTION: ${prompt.description}`,
-      instruction:
-        "Create a script for a YouTube Short video, with title, description and tags, including #shorts for:",
-    })
+  const video = uuidv4()
+  // TODO: get video number from user
+  // TODO: use video ids instead
+  const script = await askAssistant({
+    video,
+    assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
+    instruction:
+      "Create a script for a YouTube Short video, with title, description and tags, including #shorts, #unsolvedmysteries for:",
+    question: "🎥 What is the video about?",
+    path: `src/assets/video-${video}/video-${video}-script.json`,
+  })
 
-    const dir = `src/assets/video-${index}`
-    await fs.promises.mkdir(dir, { recursive: true })
+  const voiceover = await createVoiceover(video, script)
 
-    await fs.promises.writeFile(
-      `src/assets/video-${index}/video-${index}-script.json`,
-      JSON.stringify(answer)
-    )
+  const transcription = await transcribeAudio(video, voiceover)
 
-    continue
-  }
+  const imageMap = await promptAssistant({
+    video,
+    assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
+    instruction:
+      "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ",
+    prompt: transcription,
+    path: `src/assets/video-${videonumber}/video-${videonumber}-imagemap.json`,
+  })
+
+  generateImagesFromDescriptions(video, imageMap)
+
+  // TODO: check all files
+
+  const stitch = await stitchItAllUp(video, imageMap)
+
+  console.log(stitch)
 }
 
 init()

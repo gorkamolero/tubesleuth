@@ -1,19 +1,32 @@
 import OpenAI from "openai"
 import dotenv from "dotenv"
+import parseJson from "parse-json"
+import readline from "readline"
+import fs from "fs"
 
-const apiKey = dotenv.config().parsed.OPENAI_API_KEY
-const organization = dotenv.config().parsed.OPENAI_ORG_ID
+const dotenvConfig = dotenv.config()
+
+if (dotenvConfig.error) {
+  throw new Error("Couldn't parse .env file")
+}
+
+const processEnv = dotenvConfig.parsed
+
+const apiKey = processEnv.OPENAI_API_KEY
+const organization = processEnv.OPENAI_ORG_ID
 
 const openai = new OpenAI({
   apiKey,
   organization,
 })
 
-export const askAssistant = async ({ instruction, prompt, assistant_id }) => {
+const createThreadAndRun = async ({ instruction, assistant_id, prompt }) => {
+  const nodeUserMessage = `${instruction} ${prompt}`
+
   const thread = await openai.beta.threads.create()
   await openai.beta.threads.messages.create(thread.id, {
     role: "user",
-    content: `${instruction} ${prompt}`,
+    content: nodeUserMessage,
   })
 
   let run = await openai.beta.threads.runs.create(thread.id, {
@@ -35,15 +48,62 @@ export const askAssistant = async ({ instruction, prompt, assistant_id }) => {
   const answer = messages.filter((message) => message.assistant_id)[0]
     .content[0].text
 
-  const jsonBlock = answer.value
-    .replace("```json\n", "")
-    .replace("\n```", "")
-    .replace("\n", "")
-    .trim()
-
-  const jsonObject = JSON.parse(jsonBlock)
+  const jsonBlock = answer.value.replace("```json\n", "").replace("```", "")
+  const jsonObject = parseJson(jsonBlock)
 
   return jsonObject
+}
+
+const writeJsonToFile = async (jsonObject, path) => {
+  await fs.promises.mkdir(path, { recursive: true })
+
+  await fs.promises.writeFile(path, JSON.stringify(jsonObject, null, 2))
+}
+
+export const askAssistant = async ({
+  assistant_id,
+  instruction,
+  question,
+  path,
+}) => {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  let prompt
+
+  try {
+    rl.question(question, (input) => {
+      prompt = input
+      rl.close()
+    })
+
+    const answer = await createThreadAndRun({
+      instruction,
+      assistant_id,
+      prompt,
+    })
+
+    await writeJsonToFile(answer, path)
+
+    return answer
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const promptAssistant = async ({
+  assistant_id,
+  instruction,
+  prompt,
+  path,
+}) => {
+  const answer = await createThreadAndRun({ instruction, assistant_id, prompt })
+
+  await writeJsonToFile(answer, path)
+
+  return answer
 }
 
 export default openai

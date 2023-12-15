@@ -1,36 +1,14 @@
 import fs from "fs"
 import path from "path"
-import OpenAI from "openai"
 import { uploadB64Image } from "../firebaseConnector.js"
-import dotenv from "dotenv"
 import { fileURLToPath } from "url"
 import { Buffer } from "buffer"
-
-import { video } from "../config/config.js"
+import openai from "../utils/openai.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const apiKey = dotenv.config().parsed.OPENAI_API_KEY
-
-async function loadDescriptions(videoNumber) {
-  const filePath = path.resolve(
-    __dirname,
-    `../assets/video-${videoNumber}/video-${videoNumber}-imagemap.json`
-  )
-  const data = await fs.promises.readFile(filePath, "utf-8")
-  const segments = JSON.parse(data)
-
-  const descriptions = segments.map((segment) => segment.description)
-
-  return descriptions
-}
-
-const openai = new OpenAI({
-  apiKey,
-})
-
-async function generateAndUploadImage(videoNumber, description, index) {
+async function generateAndUploadImage(video, description, index) {
   try {
     const response = await openai.images.generate({
       model: "dall-e-3",
@@ -48,7 +26,7 @@ async function generateAndUploadImage(videoNumber, description, index) {
 
     await uploadB64Image(
       bufferObj,
-      `assets/video-${videoNumber}/video-${videoNumber}-image-${index}.png`
+      `assets/video-${video}/video-${video}-image-${index}.png`
     )
 
     console.log(`Image ${index} generated:`)
@@ -56,7 +34,7 @@ async function generateAndUploadImage(videoNumber, description, index) {
     // write this image to a local file, too
     const tempFile = path.resolve(
       __dirname,
-      `../assets/video-${videoNumber}/video-${videoNumber}-image-${index}.png`
+      `../assets/video-${video}/video-${video}-image-${index}.png`
     )
 
     // Ensure the directory exists
@@ -69,17 +47,30 @@ async function generateAndUploadImage(videoNumber, description, index) {
   }
 }
 
-async function generateImagesFromDescriptions(videoNumber) {
-  const descriptions = await loadDescriptions(videoNumber)
+async function generateImagesFromDescriptions(video, userDescriptions) {
+  try {
+    const descriptions = userDescriptions
+      ? userDescriptions
+      : await loadDescriptions(video)
 
-  let index = 0
-  for (const description of descriptions) {
-    index++
-    generateAndUploadImage(videoNumber, description, index)
+    let index = 0
+    for (const description of descriptions) {
+      index++
+      generateAndUploadImage(video, description, index)
 
-    // Wait 10 seconds between each request
-    await new Promise((resolve) => setTimeout(resolve, 10000))
+      // Wait 10 seconds between each request
+      await new Promise((resolve) => setTimeout(resolve, 10000))
+    }
+
+    console.log("All images generated")
+    return true
+  } catch (error) {
+    console.error(error)
+
+    return false
   }
 }
 
-generateImagesFromDescriptions(video)
+// generateImagesFromDescriptions()
+
+export default generateImagesFromDescriptions

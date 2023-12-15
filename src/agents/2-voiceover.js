@@ -1,40 +1,15 @@
-// TODO import script from file
-
-import OpenAI from "openai"
 import fs from "fs"
 import path from "path"
-import dotenv from "dotenv"
-import { video } from "../config/config.js"
 import { uploadB64Image } from "../firebaseConnector.js"
+import { loadScript } from "../utils/loadScript.js"
+import openai from "../utils/openai.js"
 
-const loadScript = async () => {
-  const filePath = `./src/assets/video-${video}/video-${video}-script.json`
+async function createVoiceover(video, userScript) {
+  let script
   try {
-    const data = await fs.promises.readFile(filePath, "utf-8")
-    const script = JSON.parse(data)
-    return script.script
-  } catch (error) {
-    console.error("Error loading script:", error)
-  }
-}
-
-// Initialize OpenAI client
-const apiKey = dotenv.config().parsed.OPENAI_API_KEY
-
-if (!apiKey) {
-  console.error(
-    "OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable."
-  )
-  process.exit(1)
-}
-
-const openai = new OpenAI({
-  apiKey,
-})
-
-async function convertTextToSpeech() {
-  try {
-    const script = await loadScript()
+    if (!userScript) {
+      script = await loadScript(video)
+    }
     // Temporary file to store the MP3
     const tempFile = path.resolve(
       `./src/assets/video-${video}/video-${video}-voiceover.mp3`
@@ -63,9 +38,13 @@ async function convertTextToSpeech() {
     )
 
     console.log("MP3 file saved to:", tempFile)
+
+    return buffer
   } catch (error) {
     console.error("Error in text-to-speech conversion:", error)
   }
 }
 
-convertTextToSpeech()
+// createVoiceover()
+
+export default createVoiceover

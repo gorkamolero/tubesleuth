@@ -1,53 +1,26 @@
 import fs from "fs"
 import path from "path"
-import OpenAI from "openai"
-import dotenv from "dotenv"
 import { fileURLToPath } from "url"
-import { video } from "../config/config.js"
+import openai from "../utils/openai"
+import remapTranscript from "../utils/remapTranscript.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-// Initialize OpenAI client
-const parsedEnv = dotenv.config().parsed
-const apiKey = parsedEnv.OPENAI_API_KEY
 
-if (!apiKey) {
-  console.error(
-    "OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable."
-  )
-  process.exit(1)
-}
+async function transcribeAudio(video, userAudioFile) {
+  const videopath = `../assets/video-${video}/video-${video}-voiceover.mp3`
+  // Path to your audio file
+  const audioFilePath = path.resolve(__dirname, videopath)
 
-const openai = new OpenAI({
-  apiKey,
-})
-const videopath = `../assets/video-${video}/video-${video}-voiceover.mp3`
-// Path to your audio file
-const audioFilePath = path.resolve(__dirname, videopath)
+  // Read the audio file
+  const audioFile = fs.createReadStream(audioFilePath)
 
-// Read the audio file
-const audioFile = fs.createReadStream(audioFilePath)
-
-const remapTranscript = (transcript) => {
-  return {
-    duration: transcript.duration,
-    language: transcript.language,
-    text: transcript.text,
-    segments: transcript.segments.map((segment) => ({
-      id: segment.id,
-      start: segment.start,
-      end: segment.end,
-      text: segment.text,
-    })),
-  }
-}
-
-async function transcribeAudio() {
+  let audio = userAudioFile ? userAudioFile : audioFile
   try {
     // Create a transcription request
     const transcript = await openai.audio.transcriptions.create({
       model: "whisper-1",
-      file: audioFile,
+      file: audio,
       response_format: "verbose_json",
     })
 
@@ -70,9 +43,13 @@ async function transcribeAudio() {
     )
 
     console.log("Transcription:", remappedTranscript)
+
+    return remappedTranscript
   } catch (error) {
     console.error("Error in audio transcription:", error)
   }
 }
 
-transcribeAudio()
+// transcribeAudio()
+
+export default transcribeAudio

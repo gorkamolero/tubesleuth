@@ -9,10 +9,10 @@ const color = `rgba(243,206,50,1)`
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-async function loadSegments(videoNumber) {
+async function loadSegments(video) {
   const filePath = path.resolve(
     __dirname,
-    `../../assets/video-${videoNumber}/video-${videoNumber}-transcript.json`
+    `../../assets/video-${video}/video-${video}-transcript.json`
   )
   const data = await fs.promises.readFile(filePath, "utf-8")
   const segments = JSON.parse(data)
@@ -20,8 +20,8 @@ async function loadSegments(videoNumber) {
   return segments
 }
 
-async function generateCaptions(videoNumber) {
-  const segments = await loadSegments(videoNumber)
+async function generateCaptions(video) {
+  const segments = await loadSegments(video)
 
   const keyframes = []
 
