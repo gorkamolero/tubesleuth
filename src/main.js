@@ -63,7 +63,12 @@ const init = async () => {
 
   console.log("🎬 Stitching it all up...");
 
-  const stitch = await stitchItAllUp({ script, video, imageMap });
+  const stitch = await stitchItAllUp({
+    script,
+    video,
+    imageMap,
+    transcription,
+  });
 
   // stitch is a js object, let's output it to the console in readable format
 
