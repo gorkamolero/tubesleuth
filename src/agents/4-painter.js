@@ -1,20 +1,19 @@
 import fs from "fs";
 import path from "path";
-import { uploadB64Image } from "../firebaseConnector.js";
-import { fileURLToPath } from "url";
+import { uploadB64Image } from "../utils/firebaseConnector.js";
 import { Buffer } from "buffer";
 import openai from "../utils/openai.js";
 import loadDescriptions from "../utils/loadDescriptions.js";
 import terminalImage from "terminal-image";
+import { imageStyle } from "../config/config.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { __filename, __dirname } from "../utils/path.js";
 
 async function generateAndUploadImage(video, description, index) {
   try {
     const response = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `NEVER USE TEXT / ONLY ONE IMAGE / PHOTORREALISTIC - ${description}`,
+      prompt: `NEVER USE TEXT / ONLY ONE IMAGE / ${imageStyle} - ${description}`,
       n: 1,
       size: "1024x1024",
 

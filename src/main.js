@@ -1,22 +1,16 @@
-import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
-import { formatTime } from "../utils/utils.js";
+import { formatTime } from "./utils/formatTime.js";
+import { cta } from "./config/config.js";
 
-const dotenvConfig = dotenv.config();
+import processEnv from "./utils/env.js";
 
-if (dotenvConfig.error) {
-  throw new Error("Couldn't parse .env file");
-}
-
-const processEnv = dotenvConfig.parsed;
-
-import { askAssistant, promptAssistant } from "../utils/openai.js";
-import createVoiceover from "./2-voiceover.js";
-import transcribeAudio from "./3-scribe.js";
-import generateImagesFromDescriptions from "./4-painter.js";
-import stitchItAllUp from "./stitcher/index.js";
-import measurePerformance from "../utils/measurePerformance.js";
-import { replacer } from "../utils/utils.js";
+import { askAssistant, promptAssistant } from "./utils/openai.js";
+import createVoiceover from "./agents/1-voiceover.js";
+import transcribeAudio from "./agents/2-scribe.js";
+import generateImagesFromDescriptions from "./agents/4-painter.js";
+import stitchItAllUp from "./agents/5-stitcher.js";
+import measurePerformance from "./utils/measurePerformance.js";
+import { replacer } from "./utils/replacer.js";
 
 const init = async () => {
   // let's measure the time it takes to run the whole thing
@@ -30,10 +24,10 @@ const init = async () => {
     video,
     assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
     instruction:
-      "Create a script for a YouTube Short video, with title, description and tags, including #shorts, #unsolvedmysteries for:",
+      "Create a script for a YouTube Short video, with title, description and tags, including #shorts for:",
     question: "🎥 What is the video about?",
     path: `src/assets/video-${video}/video-${video}-script.json`,
-    cta: "What if what you've been told is all a lie? Follow to discover the truth",
+    cta,
     debug: false,
     // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
   });
@@ -71,9 +65,12 @@ const init = async () => {
 
   const stitch = await stitchItAllUp({ script, video, imageMap });
 
+  // stitch is a js object, let's output it to the console in readable format
+
   t0 = measurePerformance(
     t0,
-    "🎬 Final step complete! Video is ready at !" + stitch,
+    "🎬 Final step complete! Video is ready at !" +
+      JSON.stringify(stitch, null, 2),
   );
   console.log(`Total execution time: ${formatTime(t0 - tStart)} milliseconds`);
 };

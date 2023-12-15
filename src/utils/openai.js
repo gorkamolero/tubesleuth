@@ -1,23 +1,12 @@
 import OpenAI from "openai";
-import dotenv from "dotenv";
 import parseJson from "parse-json";
 import readline from "readline";
 import fs from "fs";
-
-const dotenvConfig = dotenv.config();
-
-if (dotenvConfig.error) {
-  throw new Error("Couldn't parse .env file");
-}
-
-const processEnv = dotenvConfig.parsed;
-
-const apiKey = processEnv.OPENAI_API_KEY;
-const organization = processEnv.OPENAI_ORG_ID;
+import processEnv from "./env.js";
 
 const openai = new OpenAI({
-  apiKey,
-  organization,
+  apiKey: processEnv.OPENAI_API_KEY,
+  organization: processEnv.OPENAI_ORG_ID,
 });
 
 const createThreadAndRun = async ({ instruction, assistant_id, prompt }) => {

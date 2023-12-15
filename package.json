@@ -6,9 +6,7 @@
   "type": "module",
   "scripts": {
     "format": "prettier --write .",
-    "run-voiceover": "node src/agents/voiceover.js",
-    "run-image-generator": "node src/agents/image-generator.js",
-    "create": "node src/agents/0-tubesleuth.js"
+    "create": "node src/main.js"
   },
   "dependencies": {
     "audio-2.0.0": "^2.0.0",

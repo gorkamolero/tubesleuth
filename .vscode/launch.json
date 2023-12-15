@@ -7,9 +7,44 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Tubesleuth",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/image-generator.js"
+      "program": "${workspaceFolder}/src/main.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Voiceover",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/agents/1-voiceover.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Scribe",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/agents/2-scribe.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Painter",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/agents/4-painter.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Architect",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/agents/5-architect.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Stitcher",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/agents/stitcher/index.js"
     }
   ]
 }

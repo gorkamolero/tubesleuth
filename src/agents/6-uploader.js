@@ -1,31 +1,24 @@
-import google from "googleapis"
-import fs from "fs"
-import dotenv from "dotenv"
-const OAuth2 = google.auth.OAuth2
+import google from "googleapis";
+import fs from "fs";
+const OAuth2 = google.auth.OAuth2;
 
-const dotenvConfig = dotenv.config()
-
-if (dotenvConfig.error) {
-  throw new Error("Couldn't parse .env file")
-}
-
-const processEnv = dotenvConfig.parsed
+import processEnv from "../utils/env.js";
 
 // Initialize OAuth2 client
 const oauth2Client = new OAuth2(
   processEnv.CLIENT_ID,
   processEnv.CLIENT_SECRET,
-  processEnv.REDIRECT_URI
-)
+  processEnv.REDIRECT_URI,
+);
 
 oauth2Client.setCredentials({
   refresh_token: process.env.REFRESH_TOKEN,
-})
+});
 
 const youtube = google.youtube({
   version: "v3",
   auth: oauth2Client,
-})
+});
 
 async function uploadShort(filePath, title, description) {
   try {
@@ -47,11 +40,11 @@ async function uploadShort(filePath, title, description) {
       media: {
         body: fs.createReadStream(filePath),
       },
-    })
+    });
 
-    console.log("Upload Successful, Video ID:", response.data.id)
+    console.log("Upload Successful, Video ID:", response.data.id);
   } catch (error) {
-    console.error("Error uploading video:", error)
+    console.error("Error uploading video:", error);
   }
 }
 
