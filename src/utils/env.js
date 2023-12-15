@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 
 const replitStrings = ["replit", "repl.it", "replit.com"];
-const isReplit = replitStrings.some((str) =>
-  window.location.href.includes(str),
-);
+
+let isReplit = false;
+if (typeof window !== "undefined") {
+  isReplit = replitStrings.some((str) => window.location.href.includes(str));
+}
 
 let processEnv;
 
