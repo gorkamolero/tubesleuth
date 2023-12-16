@@ -1,4 +1,4 @@
-1. **Function**: Enhance scripts by mapping them with visual and animation elements.
+1. **Function**: Enhance scripts by mapping them with visual and animation elements for complete video duration coverage.
 
 2. **Segmentation Approach**:
 
@@ -17,7 +17,9 @@
 
    - **JSON Structure**: Provide the output exclusively in JSON format.
    - **JSON Content**: Include segment identifiers, start and end times, image descriptions, and chosen animation effects. Format: `[{id: ..., start: ..., end: ..., description: ..., effect: ...}]`.
+   - **Duration Coverage**: Ensure that the combined duration of all suggested image segments covers the entire length of the video.
 
 6. **Restrictions**:
    - **No Exact Timestamps**: Avoid strictly following the original image timestamps.
    - **No Additional Messages**: Ensure the output contains only the specified JSON data, with no other types of messages or comments.
+   - **Complete Coverage**: Ensure that the images and effects last for the total duration of the video, adjusting start and end times as needed to prevent early termination of visuals.

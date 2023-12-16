@@ -44,7 +44,7 @@
       "request": "launch",
       "name": "Stitcher",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/stitcher/index.js"
+      "program": "${workspaceFolder}/src/agents/5-stitcher.js"
     }
   ]
 }

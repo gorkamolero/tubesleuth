@@ -39,11 +39,7 @@ export function convertImageMapToCreatomate({ script, images, video }) {
 
     const imageBuffer = createFirebaseImageURL(index, video);
 
-    let duration = image.end - image.start;
-    // if last item, choose script.duration as the end instead of image.end
-    if (index === images.length - 1) {
-      duration = script.duration - image.start;
-    }
+    const duration = image.end - image.start;
 
     return new Creatomate.Image({
       track: 1,

@@ -31,7 +31,7 @@ const stitchItAllUp = async ({ script, video, imageMap, transcription }) => {
       }),
     ];
 
-    let source = new Creatomate.Source({
+    const source = new Creatomate.Source({
       outputFormat: "mp4",
       frameRate: 30,
       width,
@@ -69,16 +69,15 @@ const stitchItAllUp = async ({ script, video, imageMap, transcription }) => {
       script: script.script,
     };
 
-    // TODO: upload to firestore
-
-    console.log(JSON.stringify(output, null, 2));
-
-    // try to download video to local
+    // TODO: upload to firestore and try to download video to local
 
     try {
-      const download = await fetch(url);
-      const buffer = await download.buffer();
-      await fs.promises.writeFile(`${dir}/video-${video}-output.mp4`, buffer);
+      const response = await fetch(url);
+      const buffer = await response.arrayBuffer();
+      await fs.promises.writeFile(
+        `${dir}/video-${video}-output.mp4`,
+        Buffer.from(buffer),
+      );
     } catch (error) {
       console.error("Failed to download file", error);
     }

@@ -12,7 +12,7 @@ import stitchItAllUp from "./agents/5-stitcher.js";
 import measurePerformance from "./utils/measurePerformance.js";
 import { replacer } from "./utils/replacer.js";
 
-const init = async () => {
+const init = async (debug) => {
   // let's measure the time it takes to run the whole thing
   let t0 = performance.now();
   const tStart = t0;
@@ -80,4 +80,4 @@ const init = async () => {
   console.log(`Total execution time: ${formatTime(t0 - tStart)} milliseconds`);
 };
 
-init();
+init(false);

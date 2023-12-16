@@ -2,16 +2,17 @@ import { fontColor as color } from "../config/config.js";
 
 import Creatomate from "creatomate";
 import { loadSegments } from "./loadSegments.js";
+import { cleanSegments } from "./cleanSegments.js";
 
 async function generateCaptions(video, transcription) {
   let segments = cleanSegments(
-    transcription ? transcription : await loadSegments(video),
+    transcription ? transcription.segments : await loadSegments(video),
   );
 
   const keyframes = [];
 
   // Iterate through each segment in the segments array
-  for (const segment of segments.segments) {
+  for (const segment of segments) {
     // Convert each timestamp in the segment to seconds
     const startTime = segment.start;
     const endTime = segment.end;
@@ -58,7 +59,7 @@ async function generateCaptions(video, transcription) {
 
   return {
     keyframes,
-    duration: segments.duration,
+    duration: transcription.duration,
   };
 }
 export default generateCaptions;

@@ -10,5 +10,5 @@ export async function loadSegments(video) {
   const data = await fs.promises.readFile(filePath, "utf-8");
   const segments = JSON.parse(data);
 
-  return segments;
+  return segments.segments;
 }
