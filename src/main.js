@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { formatTime } from "./utils/formatTime.js";
-import { cta, writersToLookUpTo, styleInstructions } from "./config/config.js";
+import { cta } from "./config/config.js";
 
 import processEnv from "./utils/env.js";
 
@@ -20,6 +20,8 @@ const init = async (debug) => {
   const video = uuidv4().replace("-", "").substring(0, 8);
 
   console.log(`🎥 Starting video ${video}`);
+
+  console.log("Step 1: We write a script");
   const script = await askAssistant({
     video,
     assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
@@ -32,15 +34,23 @@ const init = async (debug) => {
     // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
   });
 
-  t0 = measurePerformance(t0, "🖊  Step 1 complete! Script generated!");
+  t0 = measurePerformance(t0, `🖊  Step 1 complete! Script's done`);
 
+  console.log("Step 2: We get a voice actor to read it");
   const voiceover = await createVoiceover(video, script);
 
-  t0 = measurePerformance(t0, "🙊 Step 2 complete! Voiceover uploaded!");
+  t0 = measurePerformance(t0, `🙊 Step 2 complete! The cyber voice is ready!`);
+
+  console.log("Step 3: We transcribe the voice to find the exact times");
 
   const transcription = await transcribeAudio(video, voiceover);
 
-  t0 = measurePerformance(t0, "📝 Step 3 complete! Transcription generated!");
+  t0 = measurePerformance(
+    t0,
+    "📝 Step 3 complete! We put their voice through a machine and now we know everything!",
+  );
+
+  console.log("Step 4: We think very hard about what images to show");
 
   const imageMap = await promptAssistant({
     video,
@@ -51,17 +61,23 @@ const init = async (debug) => {
     path: `src/assets/video-${video}/video-${video}-imagemap.json`,
   });
 
-  t0 = measurePerformance(t0, "🎨 Step 4 complete! Image map created!");
+  t0 = measurePerformance(
+    t0,
+    `🎨 Step 4 complete! From the cyber voice and script we are creating images!`,
+  );
 
-  console.log("📷 Generating images from descriptions...");
+  const numberOfImages = imageMap.length;
+
+  console.log(`🐌 ${numberOfImages} images to be generated now. Hang tight...`);
+
   await generateImagesFromDescriptions(video, imageMap);
 
   t0 = measurePerformance(
     t0,
-    "📸 Step 5 complete! Images generated and uploaded!",
+    "📸 Step 5 complete! Images generated and uploaded to the cyber cloud!",
   );
 
-  console.log("🎬 Stitching it all up...");
+  console.log("🎬 Stitching it all up, hang tight...");
 
   const stitch = await stitchItAllUp({
     script,
@@ -71,6 +87,13 @@ const init = async (debug) => {
   });
 
   // stitch is a js object, let's output it to the console in readable format
+
+  // stitch has tags and they show up with "" around them, let's remove them
+
+  // join all tags into a string with commas
+  if (stitch.tags && stitch.tags.length > 0) {
+    stitch.tags = stitch.tags.join(", ");
+  }
 
   t0 = measurePerformance(
     t0,
