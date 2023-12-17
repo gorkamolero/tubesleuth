@@ -1,18 +1,14 @@
 import dotenv from "dotenv";
 
-const isReplit = false;
-
 let processEnv;
 
-if (!isReplit) {
-  const dotenvConfig = dotenv.config();
+const dotenvConfig = dotenv.config();
 
-  if (dotenvConfig.error) {
-    throw new Error("Couldn't parse .env file");
-  }
-
-  processEnv = dotenvConfig.parsed;
-} else {
+if (dotenvConfig.error) {
+  console.log("This must be replit then");
   processEnv = process.env;
+} else {
+  processEnv = dotenvConfig.parsed;
 }
+
 export default processEnv;
