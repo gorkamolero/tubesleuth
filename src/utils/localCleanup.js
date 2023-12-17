@@ -19,12 +19,16 @@ export async function localCleanup(video) {
   });
 
   if (prompt === "y") {
-    await fs.promises.rm("./src/assets", { recursive: true });
-    await fs.promises.mkdir("./src/assets", { recursive: true });
+    if (fs.existsSync(`./src/assets`)) {
+      await fs.promises.rm("./src/assets", { recursive: true });
+      await fs.promises.mkdir("./src/assets", { recursive: true });
 
-    // make video folder with video-${video}
+      // make video folder with video-${video}
 
-    await fs.promises.mkdir(`./src/assets/video-${video}`, { recursive: true });
+      await fs.promises.mkdir(`./src/assets/video-${video}`, {
+        recursive: true,
+      });
+    }
 
     console.log("🐌 Local cleanup complete");
     rl.close();

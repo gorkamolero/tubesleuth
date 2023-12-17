@@ -1,5 +1,4 @@
 import Creatomate from "creatomate";
-import dotenv from "dotenv";
 import fs from "fs";
 
 import { backgroundMusicCreatomate } from "../utils/backgroundMusicCreatomate.js";
