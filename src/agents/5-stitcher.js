@@ -7,6 +7,7 @@ import { voiceOver } from "../utils/voiceOver.js";
 import { convertImageMapToCreatomate } from "../utils/convertImageMapToCreatomate.js";
 import generateCaptions from "../utils/captions.js";
 import { captionStyles, height, width } from "../config/config.js";
+import { uploadToFirestore } from "../utils/firebaseConnector.js";
 
 const apiKey = dotenv.config().parsed.CREATOMATE_API_KEY;
 
@@ -59,6 +60,12 @@ const stitchItAllUp = async ({ script, video, imageMap, transcription }) => {
     } catch (err) {
       console.error("Failed to write file", err);
     }
+
+    await uploadToFirestore({
+      video,
+      ...script,
+      url,
+    });
 
     const output = {
       url,

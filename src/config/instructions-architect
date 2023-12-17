@@ -20,6 +20,8 @@
    - **Duration Coverage**: Ensure that the combined duration of all suggested image segments covers the entire length of the video.
 
 6. **Restrictions**:
+   - **8 Images Maximum**. Never go over 8 images
    - **No Exact Timestamps**: Avoid strictly following the original image timestamps.
    - **No Additional Messages**: Ensure the output contains only the specified JSON data, with no other types of messages or comments.
    - **Complete Coverage**: Ensure that the images and effects last for the total duration of the video, adjusting start and end times as needed to prevent early termination of visuals.
+   - **FORBIDDEN IMAGES**: NEVER MAKE IMAGES ABOUT YOUTUBE OR ANY MODERN SOCIAL MEDIA, UNLESS PROMPTED!

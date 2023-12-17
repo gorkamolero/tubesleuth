@@ -11,6 +11,8 @@ import generateImagesFromDescriptions from "./agents/4-painter.js";
 import stitchItAllUp from "./agents/5-stitcher.js";
 import measurePerformance from "./utils/measurePerformance.js";
 import { replacer } from "./utils/replacer.js";
+import { localCleanup } from "./utils/localCleanup.js";
+import { uploadFile } from "./utils/firebaseConnector.js";
 
 const init = async (debug) => {
   // let's measure the time it takes to run the whole thing
@@ -19,7 +21,9 @@ const init = async (debug) => {
 
   const video = uuidv4().replace("-", "").substring(0, 8);
 
-  console.log(`🎥 Starting video ${video}`);
+  console.log(`🎥 Starting video with id  -   ${video}`);
+
+  await localCleanup(video);
 
   console.log("Step 1: We write a script");
   const script = await askAssistant({
@@ -33,6 +37,13 @@ const init = async (debug) => {
     debug: false,
     // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
   });
+
+  try {
+    let scriptPath = `assets/video-${video}/video-${video}-script.json`;
+    await uploadFile(`src/${scriptPath}`, scriptPath);
+  } catch (e) {
+    console.log("🐌 Error uploading script to Firebase", e);
+  }
 
   t0 = measurePerformance(t0, `🖊  Step 1 complete! Script's done`);
 
@@ -61,6 +72,13 @@ const init = async (debug) => {
     path: `src/assets/video-${video}/video-${video}-imagemap.json`,
   });
 
+  try {
+    let imageMapPath = `assets/video-${video}/video-${video}-imagemap.json`;
+    await uploadFile(`src/${imageMapPath}`, imageMapPath);
+  } catch (e) {
+    console.log("🐌 Error uploading image map to Firebase", e);
+  }
+
   t0 = measurePerformance(
     t0,
     `🎨 Step 4 complete! From the cyber voice and script we are creating images!`,
@@ -79,28 +97,33 @@ const init = async (debug) => {
 
   console.log("🎬 Stitching it all up, hang tight...");
 
-  const stitch = await stitchItAllUp({
-    script,
-    video,
-    imageMap,
-    transcription,
-  });
+  try {
+    const stitch = await stitchItAllUp({
+      script,
+      video,
+      imageMap,
+      transcription,
+    });
 
-  // stitch is a js object, let's output it to the console in readable format
+    if (stitch && stitch?.tags && stitch?.tags.length > 0) {
+      stitch.tags = stitch.tags.join(", ");
+    }
 
-  // stitch has tags and they show up with "" around them, let's remove them
-
-  // join all tags into a string with commas
-  if (stitch.tags && stitch.tags.length > 0) {
-    stitch.tags = stitch.tags.join(", ");
+    t0 = measurePerformance(
+      t0,
+      "🎬 Final step complete! Video is ready at !" +
+        JSON.stringify(stitch, null, 2),
+    );
+    console.log(
+      `Total execution time: ${formatTime(t0 - tStart)} milliseconds`,
+    );
+  } catch (e) {
+    t0 = measurePerformance(
+      t0,
+      "🎬 Final step failed! But check Creatomate. The video might be created, and check the local files here",
+    );
+    console.log(e);
   }
-
-  t0 = measurePerformance(
-    t0,
-    "🎬 Final step complete! Video is ready at !" +
-      JSON.stringify(stitch, null, 2),
-  );
-  console.log(`Total execution time: ${formatTime(t0 - tStart)} milliseconds`);
 };
 
 init(false);

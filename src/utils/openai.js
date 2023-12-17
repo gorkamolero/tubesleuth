@@ -118,7 +118,7 @@ export const askAssistant = async ({
     let stylePrompt = "";
 
     if (writersToLookUpTo !== null) {
-      stylePrompt += `. Instead of writing it in the style of the writer I mentioned, write in the style of ${writersToLookUpTo.join(
+      stylePrompt += `. Instead of writing it in the style of the writer mentioned, write in the style of ${writersToLookUpTo.join(
         ", ",
       )}.`;
     }

@@ -9,7 +9,8 @@
       "request": "launch",
       "name": "Tubesleuth",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/main.js"
+      "program": "${workspaceFolder}/src/main.js",
+      "console": "integratedTerminal"
     },
     {
       "type": "node",
