@@ -8,8 +8,9 @@ import { convertImageMapToCreatomate } from "../utils/convertImageMapToCreatomat
 import generateCaptions from "../utils/captions.js";
 import { captionStyles, height, width } from "../config/config.js";
 import { uploadToFirestore } from "../utils/firebaseConnector.js";
+import processEnv from "../utils/env.js";
 
-const apiKey = dotenv.config().parsed.CREATOMATE_API_KEY;
+const apiKey = processEnv.CREATOMATE_API_KEY;
 
 const client = new Creatomate.Client(apiKey);
 
