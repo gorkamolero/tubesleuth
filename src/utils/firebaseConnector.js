@@ -56,9 +56,6 @@ export const uploadToFirestore = async ({
     url,
   };
 
-  // create file with video as id
-  // upload object to firestore
-
   try {
     await admin.firestore().collection("videos").doc(video).set(object);
     console.log("🔥 Uploaded video to Firestore");
