@@ -65,16 +65,6 @@ export const uploadToFirestore = async ({
   }
 };
 
-/*
+const firestore = admin.firestore();
 
-TODO: upload stuff to firestore
-
-const firestore = ...
-
-export const uploadToFirestore = (object) => {
-  ...
-}
-
-*/
-
-export { uploadFile, uploadB64Image, downloadFile };
+export { uploadFile, uploadB64Image, downloadFile, firestore };

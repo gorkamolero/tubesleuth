@@ -13,7 +13,7 @@ export async function localCleanup(video) {
   });
 
   const prompt = await new Promise((resolve, reject) => {
-    rl.question(`Are you sure you want to proceed? (y/n)`, (answer) => {
+    rl.question(`Do you want to clean up local files? (y/n)`, (answer) => {
       resolve(answer);
     });
   });
@@ -33,8 +33,6 @@ export async function localCleanup(video) {
     console.log("🐌 Local cleanup complete");
     rl.close();
   } else {
-    console.log("🐌 Aborting local cleanup");
-
-    process.exit();
+    console.log("🐌 Aborting local cleanup, continuing");
   }
 }

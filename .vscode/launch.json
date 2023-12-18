@@ -15,6 +15,13 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Export",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/export.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Voiceover",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/src/agents/1-voiceover.js"
