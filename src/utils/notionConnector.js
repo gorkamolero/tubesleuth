@@ -16,6 +16,12 @@ const readDatabase = async ({ empty, id }) => {
         },
       },
       {
+        property: "skip",
+        checkbox: {
+          equals: false,
+        },
+      },
+      {
         property: "input",
         rich_text: {
           is_not_empty: true,
@@ -238,6 +244,10 @@ const init = async () => {
   console.log(response2);
 };
 
+const readProperty = ({ entry, property }) => {
+  return entry.properties[property];
+};
+
 // init();
 
 export {
@@ -253,4 +263,5 @@ export {
   getRichTextFieldContent,
   joinRichText,
   updateURLField,
+  readProperty,
 };

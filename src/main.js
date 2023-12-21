@@ -1,7 +1,7 @@
 import fs from "fs";
 
 import { formatTime } from "./utils/formatTime.js";
-import { cta } from "./config/config.js";
+import { cta, styleInstructions } from "./config/config.js";
 
 import processEnv from "./utils/env.js";
 
@@ -26,13 +26,16 @@ import {
   updateTagsField,
   updateCheckboxField,
   updateURLField,
+  readProperty,
 } from "./utils/notionConnector.js";
 import upload from "./agents/6-uploader.js";
 
 // TODO: restart from where we left it
 
 const createVideo = async (entry) => {
-  const uploadVid = !entry.properties.dontupload?.checkbox;
+  const channel = readProperty({ entry, property: "channel" }).select.name;
+  const dontupload = readProperty({ entry, property: "dontupload" });
+  const uploadVid = !dontupload?.checkbox;
   // let's measure the time it takes to run the whole thing
   let t0 = performance.now();
   const tStart = t0;
@@ -71,6 +74,7 @@ const createVideo = async (entry) => {
   } catch (error) {}
 
   if (!existsScript) {
+    const style = styleInstructions[channel];
     script = await askAssistant({
       video,
       assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
@@ -78,9 +82,10 @@ const createVideo = async (entry) => {
         "Create a script for a YouTube Short video, with title, description and tags, including #shorts for:",
       question: "🎥 What is the video about?",
       path: `src/assets/video-${video}/video-${video}-script.json`,
-      cta,
+      cta: cta[channel],
       debug: false,
       ...(prompt && { prompt }),
+      style,
       // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
     });
   }
@@ -91,6 +96,7 @@ const createVideo = async (entry) => {
     id,
     title: script.title,
   });
+
   await updateRichText({
     id,
     fieldName: "script",

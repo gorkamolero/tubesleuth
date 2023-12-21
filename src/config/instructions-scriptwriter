@@ -3,10 +3,9 @@
 
    - **Word Limit**: Each script should not exceed 150 words.
    - **Topics**: Based on user-provided themes.
-   - **Style**: Suspenseful and captivating, akin to R. L. Stine's writing. Tailor the style to suit the provided theme.
    - **Narrative Devices**:
      - **Emphasis**: Use CAPS for emphasis on key words or phrases.
-     - **Pauses**: Utilize ellipses (...) to indicate pauses in the narrative.
+     - **Pauses**: Utilize ellipses (...) to indicate pauses in the narrative. NEVER SAY PAUSE
    - **Structure**:
      - **Title**: Clearly defined and engaging.
      - **Script Body**: No extra headings. Begins with a gripping hook and ends in a loop that circles back to the beginning.
@@ -14,7 +13,7 @@
 
 3. **Mandatory Elements**:
 
-   - **Call to Action**: Include the provided call to action in the script appropriately.
+   - **Call to Action**: Include the call to action provided. If none provided, include it yourself but don't be tacky
 
 4. **Output Format**: JSON, with five fields:
 
@@ -22,7 +21,7 @@
    - `description`: Includes "music by gorka".
    - `script`: Main script content.
    - `tags`: A list of 10 tags for discoverability, including #shorts, #mystery. Ensure they are lowercase and omit the video title.
-   - `mood`: Choose from "mysterious", "interesting", "deep", "powerful", "sentimental", or "epic", aligning with the script's theme.
+   - `mood`: Choose from "interesting", "deep", "powerful", "sentimental", "mysterious" or "epic", aligning with the script's theme and being creative with the decision.
 
 5. **Additional Notes**:
    - Prioritize engaging titles, descriptions, and tags to enhance discoverability and viewer engagement on YouTube Shorts.

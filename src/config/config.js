@@ -3,9 +3,6 @@
 // add writers to override the original style
 export const writersToLookUpTo = ["R. L. Stine", "Borges"];
 
-export const styleInstructions = "Make it mysterious.";
-export const cta = `What if what you've been told is all a lie? Follow to discover the truth`;
-
 export const imageStyle = "PHOTORREALISTIC"; // try "cartoon style, Salvador Dalí style or whatever you want"
 
 // aspect ratio: 9:16 is vertical
@@ -39,4 +36,14 @@ export const captionStyles = {
   fillColor: null,
   shadowColor: "rgba(0,0,0,0.65)",
   shadowBlur: "1.6vmin",
+};
+
+export const styleInstructions = {
+  whispereroftruths:
+    "Suspenseful and captivating, akin to R. L. Stine's writing. Tailor the style to suit the provided theme.;",
+  yourChannel: "...",
+};
+
+export const cta = {
+  whispereroftruths: `What if what you've been told is all a lie? Follow to discover the truth`,
 };

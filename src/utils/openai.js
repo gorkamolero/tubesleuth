@@ -3,7 +3,6 @@ import parseJson from "parse-json";
 import readline from "readline";
 import fs from "fs";
 import processEnv from "./env.js";
-import { styleInstructions, writersToLookUpTo } from "../config/config.js";
 
 const openai = new OpenAI({
   apiKey: processEnv.OPENAI_API_KEY,
@@ -77,24 +76,11 @@ export const askAssistant = async ({
   path,
   debug = false,
   prompt: originalPrompt,
+  style = "",
+  cta = "",
 }) => {
-  // TODO: override instruction with writer styles and style
-
-  /*
-  Pseudo code:
-  const assistant = ...
-  const writerString = writersToLookUpto.map((writer, index) => {
-    // if last index
-    if (index ... writersToLookUpto.length) {
-      return writer
-    } else {
-      return `%{writer} and`
-    }
-  })
-
-  assistant.instructions.add(`Write in the style of ${writerstring}. ${styleInstructions}. `)
-  
-  */
+  const assistant = openai.beta.assistants.retrieve(assistant_id);
+  const instructions = assistant.instructions;
 
   let prompt;
 
@@ -118,30 +104,33 @@ export const askAssistant = async ({
     }
 
     console.log(`⏱ OK, let's go`);
+    const styleInstructions =
+      style?.length > 1
+        ? `
+    - Style instructions: ${style}`
+        : "";
+    const calltoaction =
+      cta?.length > 1
+        ? `
+    - Include call to action: ${cta}`
+        : "";
 
-    let stylePrompt = "";
-
-    if (writersToLookUpTo !== null) {
-      stylePrompt += `. Instead of writing it in the style of the writer mentioned, write in the style of ${writersToLookUpTo.join(
-        ", ",
-      )}.`;
+    if (style.length > 1) {
+      console.log("Style instructions provided: " + styleInstructions);
     }
 
-    if (styleInstructions !== null) {
-      stylePrompt += ` ${styleInstructions}. `;
+    if (cta.length > 1) {
+      console.log("Call to action provided: " + calltoaction);
     }
 
     const answer = await createThreadAndRun({
       instruction,
       assistant_id,
-      prompt: `${prompt}${stylePrompt}`,
+      prompt: prompt + styleInstructions + calltoaction,
+      override: instructions + styleInstructions + calltoaction,
     });
 
-    try {
-      await writeJsonToFile(answer, path);
-    } catch (error) {
-      console.error(`🛑 ERROR WRITING JSON FILE`, error);
-    }
+    await writeJsonToFile(answer, path);
 
     return answer;
   } catch (error) {
