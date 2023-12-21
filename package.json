@@ -8,7 +8,7 @@
   "scripts": {
     "format": "prettier --write .",
     "create": "node --no-warnings src/main.js",
-    "export": "node --no-warnings src/export.js"
+    "export": "node --no-warnings src/export.js",
     "token": "node --no-warnings src/token.js"
   },
   "dependencies": {
