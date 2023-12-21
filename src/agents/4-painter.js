@@ -25,14 +25,12 @@ async function generateAndUploadImage(video, description, index) {
 
     const bufferObj = Buffer.from(image_b64, "base64");
 
-    await uploadB64Image(
+    const url = await uploadB64Image(
       bufferObj,
       `assets/video-${video}/video-${video}-image-${index}.png`,
     );
 
     console.log(`Image ${index} generated:`);
-
-    // TODO: get url here and send them to actual image
 
     try {
       console.log(await terminalImage.buffer(bufferObj));
@@ -70,6 +68,8 @@ async function generateAndUploadImage(video, description, index) {
     do this for a maximum of 5 images
     
     */
+
+    return url;
   } catch (error) {
     console.error("Error generating image:", error);
   }
@@ -80,19 +80,51 @@ const descriptMap = (userDescriptions) =>
 
 async function generateImagesFromDescriptions(video, userDescriptions) {
   try {
+    let urls = [];
+
+    const numberOfImages = userDescriptions.length;
+
+    const lastImagePath = `src/assets/video-${video}/video-${video}-image-${numberOfImages}.png`;
+
+    try {
+      const urlsExist = await fs.promises.readFile(lastImagePath, "utf-8");
+      if (urlsExist) {
+        console.log("📝 Images exist, skipping");
+        urls = Array.from({ length: numberOfImages }, (_, i) => {
+          return `src/assets/video-${video}/video-${video}-image-${i + 1}.png`;
+        });
+        return urls;
+      }
+    } catch (error) {}
+
     const descriptions = userDescriptions
       ? descriptMap(userDescriptions)
       : await loadDescriptions(video);
 
-    let index = 0;
-    for (const description of descriptions) {
-      index++;
-      await generateAndUploadImage(video, description, index);
-
-      // Wait 10 seconds between each request
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+    const chunks = [];
+    const limit = 7;
+    for (let i = 0; i < descriptions.length; i += limit) {
+      chunks.push(descriptions.slice(i, i + limit));
     }
-    return true;
+
+    for (const chunk of chunks) {
+      // Generate and upload images in parallel
+      const chunkUrls = await Promise.all(
+        chunk.map((description, index) =>
+          generateAndUploadImage(video, description, index + 1),
+        ),
+      );
+
+      urls = [...urls, ...chunkUrls];
+
+      console.log("Waiting some seconds before generating more images...");
+
+      if (chunk !== chunks[chunks.length - 1]) {
+        await new Promise((resolve) => setTimeout(resolve, 20000));
+      }
+    }
+
+    return urls;
   } catch (error) {
     console.error(error);
 

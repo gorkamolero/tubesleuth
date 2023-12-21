@@ -37,22 +37,22 @@ x8. Title: "Egypt's Atlantean Roots: Unveiling Ancient Religions", Description: 
 19. Title: "Esoteric Orders and Atlantean Secrets", Description: "Examine the influence of Atlantis on esoteric orders and secret societies, exploring how they preserve and interpret Atlantean knowledge."
 
 
-1. **Title:** "Unveiling Atlantis: The Legendary Metropolis"
+x1. **Title:** "Unveiling Atlantis: The Legendary Metropolis"
    **Description:** "Step into the world of Atlantis, exploring its reputation as a hub of advanced technology and spiritual wisdom."
 
-2. **Title:** "Atlantis' Energy Mastery: Powering a Civilization"
+2x. **Title:** "Atlantis' Energy Mastery: Powering a Civilization"
    **Description:** "Discover how Atlanteans harnessed natural energies, using crystals and geomagnetic forces to power their advanced society."
 
-3. **Title:** "The Spiritual Depths of Atlantis"
+3x. **Title:** "The Spiritual Depths of Atlantis"
    **Description:** "Explore the spiritual beliefs of Atlantis, including rituals and practices aimed at higher consciousness and harmony with the cosmos."
 
-4. **Title:** "The Downfall of Atlantis: A Mystery Unraveled"
+4x. **Title:** "The Downfall of Atlantis: A Mystery Unraveled"
    **Description:** "Investigate the reasons behind the catastrophic end of Atlantis, from natural disasters to potential internal conflicts."
 
-5. **Title:** "Hermes Trismegistus: From Atlantis to Egypt"
+5x. **Title:** "Hermes Trismegistus: From Atlantis to Egypt"
    **Description:** "Meet Hermes Trismegistus, the sage who carried Atlantean knowledge to ancient Egypt, bridging two great civilizations."
 
-6. **Title:** "The Emerald Tablet: Atlantean Wisdom Preserved"
+6x. **Title:** "The Emerald Tablet: Atlantean Wisdom Preserved"
    **Description:** "Delve into the Emerald Tablet, a key Hermetic text believed to encapsulate the profound wisdom of Atlantis and Egypt."
 
 7. **Title:** "Hermetic Principles: Legacy of Atlantis"

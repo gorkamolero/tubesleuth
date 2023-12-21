@@ -76,6 +76,7 @@ export const askAssistant = async ({
   question,
   path,
   debug = false,
+  prompt: originalPrompt,
 }) => {
   // TODO: override instruction with writer styles and style
 
@@ -95,15 +96,18 @@ export const askAssistant = async ({
   
   */
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
   let prompt;
 
   try {
-    if (!debug) {
+    if (originalPrompt) {
+      prompt = originalPrompt;
+    }
+
+    if (!debug && !originalPrompt) {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
       prompt = await askQuestion(rl, question);
       rl.close();
     }

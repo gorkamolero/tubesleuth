@@ -15,6 +15,21 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Upload",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/agents/6-uploader.js",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Notion",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/utils/notionConnector.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Export",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/src/export.js"

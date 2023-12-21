@@ -5,6 +5,24 @@ import { loadScript } from "../utils/loadScript.js";
 import openai from "../utils/openai.js";
 
 async function createVoiceover(video, userScript) {
+  /* let voiceover = {};
+  try {
+    const existsVoiceover = await fs.promises.readFile(
+      `src/assets/video-${video}/video-${video}-voiceover.mp3`,
+      "utf-8",
+    );
+
+    if (existsVoiceover) {
+      console.log("📝 Voiceover exists, skipping");
+      const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
+
+      const url = `${firebasePath}/video-${video}%2Fvideo-${video}-voiceover.mp3?alt=media`;
+      return {
+        voiceover: existsVoiceover,
+        url,
+      };
+    }
+  } catch (error) {} */
   try {
     let script = userScript.script;
     if (!userScript) {
@@ -33,13 +51,16 @@ async function createVoiceover(video, userScript) {
 
     const contentType = "audio/mpeg";
 
-    await uploadB64Image(
+    const url = await uploadB64Image(
       buffer,
       `assets/video-${video}/video-${video}-voiceover.mp3`,
       contentType,
     );
 
-    return buffer;
+    return {
+      voiceover: buffer,
+      url,
+    };
   } catch (error) {
     console.error("Error in text-to-speech conversion:", error);
   }

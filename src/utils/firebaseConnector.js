@@ -11,11 +11,16 @@ admin.initializeApp({
 const bucket = admin.storage().bucket();
 
 const uploadFile = async (localFilePath, storageFilePath) => {
-  const [file] = await bucket.upload(localFilePath, {
-    destination: storageFilePath,
-  });
-  console.log(`${localFilePath} uploaded to ${storageFilePath}.`);
-  return file;
+  try {
+    const [file] = await bucket.upload(localFilePath, {
+      destination: storageFilePath,
+    });
+    console.log(`${localFilePath} uploaded to ${storageFilePath}.`);
+    return file;
+  } catch (e) {
+    console.log("🔥 Error uploading file to Firebase", e);
+    return e;
+  }
 };
 
 const uploadB64Image = async (
@@ -28,7 +33,13 @@ const uploadB64Image = async (
     contentType,
   });
 
-  return file;
+  // return url
+  const url = await file.getSignedUrl({
+    action: "read",
+    expires: "03-09-2491",
+  });
+
+  return url[0];
 };
 
 const downloadFile = async (storageFilePath, localFilePath) => {
@@ -36,7 +47,7 @@ const downloadFile = async (storageFilePath, localFilePath) => {
     .file(storageFilePath)
     .download({ destination: localFilePath });
   console.log(`Downloaded ${storageFilePath} to ${localFilePath}.`);
-  return file;
+  return localFilePath;
 };
 
 export const uploadToFirestore = async ({

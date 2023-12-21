@@ -1,3 +1,5 @@
+import fs from "fs";
+
 import { formatTime } from "./utils/formatTime.js";
 import { cta } from "./config/config.js";
 
@@ -13,48 +15,119 @@ import { replacer } from "./utils/replacer.js";
 import { localCleanup } from "./utils/localCleanup.js";
 import { uploadFile } from "./utils/firebaseConnector.js";
 import { generateRandomId } from "./utils/generateRandomID.js";
+import {
+  createEntry,
+  updateTitle,
+  joinRichText,
+  readDatabase,
+  updateFileField,
+  updateImageField,
+  updateRichText,
+  updateTagsField,
+  updateCheckboxField,
+  updateURLField,
+} from "./utils/notionConnector.js";
+import upload from "./agents/6-uploader.js";
 
-const init = async (debug) => {
+// TODO: restart from where we left it
+
+const createVideo = async (entry) => {
+  const uploadVid = !entry.properties.dontupload?.checkbox;
   // let's measure the time it takes to run the whole thing
   let t0 = performance.now();
   const tStart = t0;
 
-  const video = generateRandomId();
+  const video = entry.id ? entry.id : generateRandomId();
+  let id = video;
+
+  // if no id, we create a new entry
+  if (!entry.id) {
+    id = await createEntry();
+  }
 
   console.log(`🎥 Starting video with id  -   ${video}`);
 
-  await localCleanup(video);
+  // create dir
+
+  await fs.promises.mkdir(`src/assets/video-${video}`, { recursive: true });
+
+  // await localCleanup(video);
+
+  const prompt = joinRichText(entry.properties.input.rich_text);
 
   console.log("Step 1: We write a script");
-  const script = await askAssistant({
-    video,
-    assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
-    instruction:
-      "Create a script for a YouTube Short video, with title, description and tags, including #shorts for:",
-    question: "🎥 What is the video about?",
-    path: `src/assets/video-${video}/video-${video}-script.json`,
-    cta,
-    debug: false,
-    // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
-  });
-
+  let script = {};
+  let existsScript = false;
   try {
-    let scriptPath = `assets/video-${video}/video-${video}-script.json`;
-    await uploadFile(`src/${scriptPath}`, scriptPath);
-  } catch (e) {
-    console.log("🐌 Error uploading script to Firebase", e);
+    existsScript = await fs.promises.readFile(
+      `src/assets/video-${video}/video-${video}-script.json`,
+      "utf-8",
+    );
+
+    if (existsScript) {
+      console.log("📝 Script exists, skipping");
+      script = JSON.parse(existsScript);
+    }
+  } catch (error) {}
+
+  if (!existsScript) {
+    script = await askAssistant({
+      video,
+      assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
+      instruction:
+        "Create a script for a YouTube Short video, with title, description and tags, including #shorts for:",
+      question: "🎥 What is the video about?",
+      path: `src/assets/video-${video}/video-${video}-script.json`,
+      cta,
+      debug: false,
+      ...(prompt && { prompt }),
+      // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
+    });
   }
 
   t0 = measurePerformance(t0, `🖊  Step 1 complete! Script's done`);
 
+  await updateTitle({
+    id,
+    title: script.title,
+  });
+  await updateRichText({
+    id,
+    fieldName: "script",
+    richTextContent: script.script,
+  });
+  await updateRichText({
+    id,
+    fieldName: "description",
+    richTextContent: script.description,
+  });
+  await updateTagsField({ id, fieldName: "tags", tags: script.tags });
+
   console.log("Step 2: We get a voice actor to read it");
-  const voiceover = await createVoiceover(video, script);
+
+  const { voiceover, url } = await createVoiceover(video, script);
+
+  await updateFileField({ id, fieldName: "voiceover", fileUrl: url });
 
   t0 = measurePerformance(t0, `🙊 Step 2 complete! The cyber voice is ready!`);
 
   console.log("Step 3: We transcribe the voice to find the exact times");
 
-  const transcription = await transcribeAudio(video, voiceover);
+  let transcription = {};
+
+  try {
+    const existsTranscription = await fs.promises.readFile(
+      `src/assets/video-${video}/video-${video}-transcript.mp3`,
+      "utf-8",
+    );
+
+    if (existsTranscription) {
+      console.log("📝 Transcription exists, skipping");
+      transcription = JSON.parse(existsTranscription);
+    }
+  } catch (error) {}
+
+  transcription = await transcribeAudio(video, voiceover);
 
   t0 = measurePerformance(
     t0,
@@ -63,21 +136,25 @@ const init = async (debug) => {
 
   console.log("Step 4: We think very hard about what images to show");
 
-  const imageMap = await promptAssistant({
+  let imageMap = [];
+  let imageMapPath = `src/assets/video-${video}/video-${video}-imagemap.json`;
+
+  try {
+    existsImageMap = await fs.promises.readFile(imageMapPath, "utf-8");
+
+    if (existsImageMap) {
+      console.log("📝 Image map exists, skipping");
+      imageMap = JSON.parse(existsImageMap);
+    }
+  } catch (error) {}
+  imageMap = await promptAssistant({
     video,
     assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
     instruction:
       "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ",
     prompt: JSON.stringify(transcription.segments, replacer),
-    path: `src/assets/video-${video}/video-${video}-imagemap.json`,
+    path: imageMapPath,
   });
-
-  try {
-    let imageMapPath = `assets/video-${video}/video-${video}-imagemap.json`;
-    await uploadFile(`src/${imageMapPath}`, imageMapPath);
-  } catch (e) {
-    console.log("🐌 Error uploading image map to Firebase", e);
-  }
 
   t0 = measurePerformance(
     t0,
@@ -88,7 +165,7 @@ const init = async (debug) => {
 
   console.log(`🐌 ${numberOfImages} images to be generated now. Hang tight...`);
 
-  await generateImagesFromDescriptions(video, imageMap);
+  const urls = await generateImagesFromDescriptions(video, imageMap);
 
   t0 = measurePerformance(
     t0,
@@ -97,32 +174,70 @@ const init = async (debug) => {
 
   console.log("🎬 Stitching it all up, hang tight...");
 
-  try {
-    const stitch = await stitchItAllUp({
-      script,
-      video,
-      imageMap,
-      transcription,
+  await updateImageField({ id, fieldName: "images", urls });
+
+  const stitch = await stitchItAllUp({
+    script,
+    video,
+    imageMap,
+    transcription,
+  });
+
+  if (stitch && stitch?.tags && stitch?.tags.length > 0) {
+    stitch.tags = stitch.tags.join(", ");
+  }
+
+  t0 = measurePerformance(
+    t0,
+    "🎬 Video is ready at !" + JSON.stringify(stitch, null, 2),
+  );
+  if (uploadVid) {
+    await upload({
+      videoFilePath: stitch.localFile,
+      title: stitch.title,
+      description: stitch.description,
+      tags: stitch.tags,
     });
+  }
 
-    if (stitch && stitch?.tags && stitch?.tags.length > 0) {
-      stitch.tags = stitch.tags.join(", ");
+  await updateURLField({
+    id,
+    fieldName: "url",
+    url: stitch.url,
+  });
+
+  await updateCheckboxField({ id, fieldName: "done", checked: true });
+
+  t0 = measurePerformance(
+    t0,
+    "🎬 Video is uploaded to YouTube at " + stitch.url,
+  );
+
+  console.log(`Total execution time: ${formatTime(t0 - tStart)} milliseconds`);
+};
+
+const create = async () => {
+  const videos = await readDatabase({
+    empty: true,
+    id: false,
+  });
+
+  for (const video of videos) {
+    await createVideo(video);
+  }
+};
+
+const init = async (debug) => {
+  let times = 5;
+
+  while (times > 0) {
+    try {
+      await create();
+      times = 0;
+    } catch (e) {
+      console.log("🐌 Error creating video, Trying again", e);
+      times--;
     }
-
-    t0 = measurePerformance(
-      t0,
-      "🎬 Final step complete! Video is ready at !" +
-        JSON.stringify(stitch, null, 2),
-    );
-    console.log(
-      `Total execution time: ${formatTime(t0 - tStart)} milliseconds`,
-    );
-  } catch (e) {
-    t0 = measurePerformance(
-      t0,
-      "🎬 Final step failed! But check Creatomate. The video might be created, and check the local files here",
-    );
-    console.log(e);
   }
 };
 
