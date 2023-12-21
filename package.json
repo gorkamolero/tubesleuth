@@ -9,7 +9,7 @@
     "format": "prettier --write .",
     "create": "node --no-warnings src/main.js",
     "export": "node --no-warnings src/export.js",
-    "token": "node --no-warnings src/token.js"
+    "token": "node --no-warnings src/agents/6-uploader.js"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.14",
