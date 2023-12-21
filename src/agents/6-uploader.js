@@ -180,7 +180,7 @@ const init = async () => {
     tags: ["shorts"],
   };
 
-  data.videoFilePath = localVideo;
+  data.videoFilePath = path;
 
   await upload(data);
 };
