@@ -31,12 +31,12 @@ const readDatabase = async ({ empty, id }) => {
   };
   try {
     const filter = empty ? emptyFilter : {};
-    // url is empty
+    // make it descending
     const response = await notion.databases.query({
       database_id: tubesleuth,
       filter,
     });
-    return response.results;
+    return response.results.reverse();
   } catch (error) {
     console.error(`Error reading database: ${error}`);
     throw error;

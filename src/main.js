@@ -34,6 +34,9 @@ import upload from "./agents/6-uploader.js";
 
 const createVideo = async (entry) => {
   const channel = readProperty({ entry, property: "channel" }).select.name;
+  const input = joinRichText(
+    readProperty({ entry, property: "input" }).rich_text,
+  );
   const dontupload = readProperty({ entry, property: "dontupload" });
   const uploadVid = !dontupload?.checkbox;
   // let's measure the time it takes to run the whole thing
@@ -49,10 +52,17 @@ const createVideo = async (entry) => {
   }
 
   console.log(`🎥 Starting video with id  -   ${video}`);
+  console.log(`🎥 Input for video: ${input}`);
 
   // create dir
 
   await fs.promises.mkdir(`src/assets/video-${video}`, { recursive: true });
+
+  await updateRichText({
+    id,
+    fieldName: "videoId",
+    richTextContent: video,
+  });
 
   // await localCleanup(video);
 
@@ -193,10 +203,7 @@ const createVideo = async (entry) => {
     stitch.tags = stitch.tags.join(", ");
   }
 
-  t0 = measurePerformance(
-    t0,
-    "🎬 Video is ready at !" + JSON.stringify(stitch, null, 2),
-  );
+  t0 = measurePerformance(t0, "🎬 Video is ready at " + stitch.url);
   if (uploadVid) {
     await upload({
       videoFilePath: stitch.localFile,
@@ -204,6 +211,15 @@ const createVideo = async (entry) => {
       description: stitch.description,
       tags: stitch.tags,
     });
+
+    await updateCheckboxField({ id, fieldName: "uploaded", checked: true });
+
+    t0 = measurePerformance(
+      t0,
+      "🎬 Video is uploaded to YouTube at " + stitch.url,
+    );
+  } else {
+    t0 = measurePerformance(t0, "🎬 Video is finished at " + stitch.url);
   }
 
   await updateURLField({
@@ -213,11 +229,6 @@ const createVideo = async (entry) => {
   });
 
   await updateCheckboxField({ id, fieldName: "done", checked: true });
-
-  t0 = measurePerformance(
-    t0,
-    "🎬 Video is uploaded to YouTube at " + stitch.url,
-  );
 
   console.log(`Total execution time: ${formatTime(t0 - tStart)} milliseconds`);
 };

@@ -15,7 +15,7 @@ export const textTransform = "uppercase"; // change if you don't want all caps..
 export const fontWeight = "800"; // that's super bold. regular is 400
 export const fontSize = "4.5vh"; // experiment, I think 2 - 6 is good but 5+ cuts words
 export const fontColor = `rgba(243,206,50,1)`; // main color of the word being spoken
-export const yPadding = "8 vmin"; // use this to center
+export const yPadding = "10 vmin"; // use this to center
 
 export const captionStyles = {
   // Make the subtitle container as large as the screen with some padding
@@ -41,9 +41,10 @@ export const captionStyles = {
 export const styleInstructions = {
   whispereroftruths:
     "Suspenseful and captivating, akin to R. L. Stine's writing. Tailor the style to suit the provided theme.;",
-  yourChannel: "...",
+  momentsinstockmarket: "Engaging and informative",
 };
 
 export const cta = {
   whispereroftruths: `What if what you've been told is all a lie? Follow to discover the truth`,
+  momentsinstockmarket: `Follow and subscribe for more moments in stock market history`,
 };

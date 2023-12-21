@@ -128,7 +128,7 @@ function authorize(credentials, callback) {
  * @param {getEventsCallback} callback The callback to call with the authorized
  *     client.
  */
-function getNewToken(oauth2Client, callback) {
+export function getNewToken(oauth2Client, callback) {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: SCOPES,
