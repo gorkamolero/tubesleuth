@@ -68,6 +68,23 @@
       "name": "Stitcher",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/src/agents/5-stitcher.js"
+    },
+
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "test",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/utils/test.js",
+      "console": "integratedTerminal"
+    },
+
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "reactive",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/agents/5-stitcher-reactive.js"
     }
   ]
 }

@@ -2,127 +2,135 @@ import fs from "fs";
 import path from "path";
 import { uploadB64Image } from "../utils/firebaseConnector.js";
 import { Buffer } from "buffer";
-import openai from "../utils/openai.js";
+import openai, { askAssistant, regenerateSafePrompt } from "../utils/openai.js";
 import loadDescriptions from "../utils/loadDescriptions.js";
 import terminalImage from "terminal-image";
 import { imageStyle } from "../config/config.js";
 
 import { __filename, __dirname } from "../utils/path.js";
+import processEnv from "../utils/env.js";
 
-async function generateAndUploadImage(video, description, index) {
+async function generateImageWithLemonFox(description, retryCount = 3) {
   try {
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `NEVER USE TEXT / ONLY ONE IMAGE / ${imageStyle} - ${description}`,
-      n: 1,
-      size: "1024x1024",
+    const response = await fetch(
+      "https://api.lemonfox.ai/v1/images/generations",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${processEnv.LEMONFOX_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: description,
+          negative_prompt: "NEVER USE TEXT",
+        }),
+      },
+    );
+    const { data } = await response.json();
+    const url = data[0].url;
+    return url;
+  } catch (error) {
+    if (retryCount > 0) {
+      console.log(
+        `Retrying generateImageWithLemonFox, attempts left: ${retryCount - 1}`,
+      );
+      return generateImageWithLemonFox(description, retryCount - 1);
+    } else {
+      throw error;
+    }
+  }
+}
 
-      // b64_json or url
-      response_format: "b64_json",
+async function generateImageWithOpenAI(description) {
+  return await openai.images.generate({
+    model: "dall-e-3",
+    prompt: `NEVER USE TEXT / ONLY ONE IMAGE / ${imageStyle} - ${description}`,
+    n: 1,
+    size: "1024x1792",
+    response_format: "b64_json",
+  });
+}
+
+async function generateAndUploadImage(
+  video,
+  description,
+  index,
+  lemon = false,
+) {
+  try {
+    let url;
+    const trueDescription = await askAssistant({
+      assistant_id: processEnv.ASSISTANT_PHOTOGRAPHER,
+      instruction: `create a prompt for: `,
+      prompt: description,
+      isJSON: false,
     });
 
-    const image_b64 = response.data[0].b64_json;
+    if (lemon) {
+      url = await generateImageWithLemonFox(trueDescription);
+    } else {
+      const response = await generateImageWithOpenAI(trueDescription);
+      const image_b64 = response.data[0].b64_json;
 
-    const bufferObj = Buffer.from(image_b64, "base64");
+      const bufferObj = Buffer.from(image_b64, "base64");
 
-    const url = await uploadB64Image(
-      bufferObj,
-      `assets/video-${video}/video-${video}-image-${index}.png`,
-    );
+      await uploadB64Image(
+        bufferObj,
+        `assets/video-${video}/video-${video}-image-${index}.png`,
+      );
 
-    console.log(`Image ${index} generated:`);
+      url = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets%2Fvideo-${video}%2Fvideo-${video}-image-${index}.png?alt=media`;
 
-    try {
-      console.log(await terminalImage.buffer(bufferObj));
-    } catch (error) {}
+      console.log(`Image ${index} generated:`);
 
-    // write this image to a local file, too
-    const tempFile = path.resolve(
-      __dirname,
-      `../assets/video-${video}/video-${video}-image-${index}.png`,
-    );
+      try {
+        console.log(await terminalImage.buffer(bufferObj));
+      } catch (error) {}
 
-    // Ensure the directory exists
-    const dir = path.dirname(tempFile);
-    await fs.promises.mkdir(dir, { recursive: true });
+      // write this image to a local file, too
+      const tempFile = path.resolve(
+        __dirname,
+        `../assets/video-${video}/video-${video}-image-${index}.png`,
+      );
 
-    await fs.promises.writeFile(tempFile, bufferObj);
+      // Ensure the directory exists
+      const dir = path.dirname(tempFile);
+      await fs.promises.mkdir(dir, { recursive: true });
 
-    // TODO: ask if a number of images is wrong
-    /*
-    PSEUDO CODE
-
-    readline.prompt to user in emphatic fashion: if some images are not to your liking, say so. Otherwise the script will continue in 15s. You can change up to 5 images
-    
-    readline.prompt: ok, which are they? Input the numbers, separated by commas. 
-
-    // add to the prompt, for each of the images
-    
-    const regenerate = (array) // 2,5,7
-    for (const image of array.from(regenerate)) {
-      await ...
+      await fs.promises.writeFile(tempFile, bufferObj);
     }
-
-    recursive function with different log: ok now, are we cool? yes / no. 15s
-
-    do this for a maximum of 5 images
-    
-    */
 
     return url;
   } catch (error) {
+    // if error.code content_policy_violation, regenerate with adjusted prompt
+    if (error.code === "content_policy_violation") {
+      let safePrompt = await regenerateSafePrompt(description);
+
+      return generateAndUploadImage(video, safePrompt, index);
+    }
     console.error("Error generating image:", error);
   }
 }
 
-const descriptMap = (userDescriptions) =>
-  userDescriptions.map((description) => description.description);
+const descriptMap = (imageMap) =>
+  imageMap.map((description) => description.description);
 
-async function generateImagesFromDescriptions(video, userDescriptions) {
+async function generateImagesFromDescriptions({
+  video,
+  imageMap,
+  lemon = false,
+}) {
   try {
-    let urls = [];
-
-    const numberOfImages = userDescriptions.length;
-
-    const lastImagePath = `src/assets/video-${video}/video-${video}-image-${numberOfImages}.png`;
-
-    try {
-      const urlsExist = await fs.promises.readFile(lastImagePath, "utf-8");
-      if (urlsExist) {
-        console.log("📝 Images exist, skipping");
-        urls = Array.from({ length: numberOfImages }, (_, i) => {
-          return `src/assets/video-${video}/video-${video}-image-${i + 1}.png`;
-        });
-        return urls;
-      }
-    } catch (error) {}
-
-    const descriptions = userDescriptions
-      ? descriptMap(userDescriptions)
+    const descriptions = imageMap
+      ? descriptMap(imageMap)
       : await loadDescriptions(video);
 
-    const chunks = [];
-    const limit = 7;
-    for (let i = 0; i < descriptions.length; i += limit) {
-      chunks.push(descriptions.slice(i, i + limit));
-    }
-
-    for (const chunk of chunks) {
-      // Generate and upload images in parallel
-      const chunkUrls = await Promise.all(
-        chunk.map((description, index) =>
-          generateAndUploadImage(video, description, index + 1),
-        ),
-      );
-
-      urls = [...urls, ...chunkUrls];
-
-      console.log("Waiting some seconds before generating more images...");
-
-      if (chunk !== chunks[chunks.length - 1]) {
-        await new Promise((resolve) => setTimeout(resolve, 20000));
-      }
-    }
+    // Generate and upload images in parallel
+    const urls = await Promise.all(
+      descriptions.map((description, index) =>
+        generateAndUploadImage(video, description, index + 1, lemon),
+      ),
+    );
 
     return urls;
   } catch (error) {
@@ -131,7 +139,5 @@ async function generateImagesFromDescriptions(video, userDescriptions) {
     return false;
   }
 }
-
-// generateImagesFromDescriptions()
 
 export default generateImagesFromDescriptions;

@@ -5,3 +5,4 @@ node_modules/
 src/config/tubesleuth-firebase-adminsdk-3u6pr-b9a83abb5f.json
 src/assets/*
 env.JSON
+browser/

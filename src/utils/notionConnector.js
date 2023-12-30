@@ -36,9 +36,39 @@ const readDatabase = async ({ empty, id }) => {
       database_id: tubesleuth,
       filter,
     });
-    return response.results.reverse();
+    if (response.length === 0) {
+      console.log("❗️ No entries found.");
+      return [];
+    }
+
+    // if there are things with priority true, put them at the front
+    const priority = response.results.filter((entry) => {
+      return entry.properties.priority?.checkbox;
+    });
+
+    const notPriority = response.results
+      .filter((entry) => {
+        return !entry.properties.priority?.checkbox;
+      })
+      .reverse();
+
+    const sorted = [...priority, ...notPriority];
+
+    return sorted;
   } catch (error) {
     console.error(`Error reading database: ${error}`);
+    throw error;
+  }
+};
+
+const getEntry = async (title) => {
+  try {
+    const response = await notion.search({
+      query: title,
+    });
+    return response.results[0];
+  } catch (error) {
+    console.error(`Error getting entry: ${error}`);
     throw error;
   }
 };
@@ -232,6 +262,29 @@ const joinRichText = (richTextArray) => {
   return richTextArray.map((richText) => richText.plain_text).join("\n");
 };
 
+const readProperty = ({ entry, property }) => {
+  return entry.properties[property];
+};
+
+const updateDateField = async ({ id, fieldName, date }) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: id,
+      properties: {
+        [fieldName]: {
+          date: {
+            start: date,
+          },
+        },
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error(`Error updating date field: ${error}`);
+    throw error;
+  }
+};
+
 const init = async () => {
   const db = await readDatabase();
 
@@ -244,15 +297,12 @@ const init = async () => {
   console.log(response2);
 };
 
-const readProperty = ({ entry, property }) => {
-  return entry.properties[property];
-};
-
 // init();
 
 export {
   init,
   readDatabase,
+  getEntry,
   createEntry,
   updateTitle,
   updateRichText,
@@ -264,4 +314,5 @@ export {
   joinRichText,
   updateURLField,
   readProperty,
+  updateDateField,
 };

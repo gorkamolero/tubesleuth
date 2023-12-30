@@ -3,13 +3,24 @@ import parseJson from "parse-json";
 import readline from "readline";
 import fs from "fs";
 import processEnv from "./env.js";
+import { writeJsonToFile } from "./writeJsonToFile.js";
 
 const openai = new OpenAI({
   apiKey: processEnv.OPENAI_API_KEY,
   organization: processEnv.OPENAI_ORG_ID,
 });
 
-const createThreadAndRun = async ({ instruction, assistant_id, prompt }) => {
+const lemon = new OpenAI({
+  apiKey: processEnv.OPENAI_API_KEY,
+  baseURL: "https://api.lemonfox.ai/v1",
+});
+
+const createThreadAndRun = async ({
+  instruction,
+  assistant_id,
+  prompt,
+  isJSON,
+}) => {
   const nodeUserMessage = `${instruction} ${prompt}`;
 
   const thread = await openai.beta.threads.create();
@@ -37,28 +48,23 @@ const createThreadAndRun = async ({ instruction, assistant_id, prompt }) => {
   const answer = messages.filter((message) => message.assistant_id)[0]
     .content[0].text;
 
-  let jsonBlock;
-  if (answer.value.includes("```json")) {
-    jsonBlock = answer.value.replace("```json\n", "").replace("```", "");
+  if (isJSON) {
+    let jsonBlock;
+    if (answer.value.includes("```json")) {
+      jsonBlock = answer.value.replace("```json\n", "").replace("```", "");
+    } else {
+      jsonBlock = answer.value;
+    }
+    let jsonObject = jsonBlock;
+    try {
+      jsonObject = parseJson(jsonBlock);
+    } catch (error) {
+      console.error(`🛑 ERROR PARSING JSON`, error, jsonBlock);
+    }
+    return jsonObject;
   } else {
-    jsonBlock = answer.value;
+    return answer.value;
   }
-  let jsonObject;
-  try {
-    jsonObject = parseJson(jsonBlock);
-  } catch (error) {
-    console.error(`🛑 ERROR PARSING JSON`, error, jsonBlock);
-  }
-
-  return jsonObject;
-};
-
-const writeJsonToFile = async (jsonObject, filePath) => {
-  const dirPath = filePath.substring(0, filePath.lastIndexOf("/"));
-
-  await fs.promises.mkdir(dirPath, { recursive: true });
-
-  await fs.promises.writeFile(filePath, JSON.stringify(jsonObject, null, 2));
 };
 
 const askQuestion = (rl, question) => {
@@ -78,8 +84,9 @@ export const askAssistant = async ({
   prompt: originalPrompt,
   style = "",
   cta = "",
+  isJSON = false,
 }) => {
-  const assistant = openai.beta.assistants.retrieve(assistant_id);
+  const assistant = await openai.beta.assistants.retrieve(assistant_id);
   const instructions = assistant.instructions;
 
   let prompt;
@@ -103,7 +110,6 @@ export const askAssistant = async ({
         "title: Cyclical Time in Hindu Mythology, description: Exploring the concept of Yuga cycles in Hindu mythology, where time is cyclical and each era ends in a world-resetting event.";
     }
 
-    console.log(`⏱ OK, let's go`);
     const styleInstructions =
       style?.length > 1
         ? `
@@ -115,22 +121,17 @@ export const askAssistant = async ({
     - Include call to action: ${cta}`
         : "";
 
-    if (style.length > 1) {
-      console.log("Style instructions provided: " + styleInstructions);
-    }
-
-    if (cta.length > 1) {
-      console.log("Call to action provided: " + calltoaction);
-    }
-
     const answer = await createThreadAndRun({
       instruction,
       assistant_id,
       prompt: prompt + styleInstructions + calltoaction,
       override: instructions + styleInstructions + calltoaction,
+      isJSON,
     });
 
-    await writeJsonToFile(answer, path);
+    if (path) {
+      await writeJsonToFile(answer, path);
+    }
 
     return answer;
   } catch (error) {
@@ -142,17 +143,49 @@ export const promptAssistant = async ({
   assistant_id,
   instruction,
   prompt,
-  path,
+  isJSON,
 }) => {
   const answer = await createThreadAndRun({
     instruction,
     assistant_id,
     prompt,
+    isJSON,
   });
-
-  await writeJsonToFile(answer, path);
 
   return answer;
 };
 
+export async function regenerateSafePrompt(originalPrompt) {
+  try {
+    const response = await openai.ChatCompletion.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        {
+          role: "user",
+          content: originalPrompt,
+        },
+        {
+          role: "assistant",
+          content: "Sorry, but I can't assist with that.",
+        },
+        {
+          role: "user",
+          content:
+            "Please help me generate a safe and appropriate version of this prompt.",
+        },
+      ],
+    });
+
+    const newPrompt = response["choices"][0]["message"]["content"];
+    return newPrompt;
+  } catch (error) {
+    console.error("Error regenerating prompt:", error);
+  }
+}
+
 export default openai;
+export { lemon };

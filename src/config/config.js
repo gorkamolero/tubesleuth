@@ -33,18 +33,55 @@ export const captionStyles = {
   textTransform,
   fontWeight,
   fontSize,
+  fontColor,
   fillColor: null,
   shadowColor: "rgba(0,0,0,0.65)",
   shadowBlur: "1.6vmin",
 };
 
+export const captionStylesModern = {
+  // Make the subtitle container as large as the screen with some padding
+  width: "100%",
+  height: "100%",
+  paddingLeft: "3vmin",
+  paddingRight: "3vmin",
+  paddingTop: "10vmin",
+  paddingBottom: "10vmin",
+
+  // Align text to bottom center
+  left: 0,
+  bottom: 0,
+  // transform: "translate(-50%, -50%)",
+
+  // Text style - note that the default fill color is null (transparent)
+  fontFamily,
+  textTransform,
+  fontWeight,
+  fontSize,
+  fontColor,
+  fillColor: null,
+  shadowColor: "rgba(0,0,0,0.65)",
+  shadowBlur: "1.6vmin",
+  textShadow: "0px 0px 10px rgba(0,0,0,0.65)",
+};
+
 export const styleInstructions = {
   whispereroftruths:
-    "Suspenseful and captivating, akin to R. L. Stine's writing. Tailor the style to suit the provided theme.;",
+    "Suspenseful, serious and captivating, akin to a mix between Borges and R. L. Stine's writing. Tailor the style to suit the provided theme and always include facts or factoids;",
   momentsinstockmarket: "Engaging and informative",
 };
 
 export const cta = {
   whispereroftruths: `What if what you've been told is all a lie? Follow to discover the truth`,
   momentsinstockmarket: `Follow and subscribe for more moments in stock market history`,
+};
+
+export const frameRate = {
+  whispereroftruths: 60,
+  momentsinstockmarket: 60,
+};
+
+export const voiceModel = {
+  whispereroftruths: "onyx",
+  momentsinstockmarket: "onyx",
 };

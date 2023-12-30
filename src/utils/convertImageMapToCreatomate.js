@@ -1,7 +1,7 @@
 import Creatomate from "creatomate";
 import { createFirebaseImageURL } from "./createFirebaseImageURL.js";
 
-export function convertImageMapToCreatomate({ script, images, video }) {
+export function convertImageMapToCreatomate({ images }) {
   return images.map((image, index) => {
     let animation;
     if (image.animation === "ZoomIn") {
@@ -37,14 +37,12 @@ export function convertImageMapToCreatomate({ script, images, video }) {
       transition = new Creatomate.Fade();
     }
 
-    const imageBuffer = createFirebaseImageURL(index, video);
-
     const duration = image.end - image.start;
 
     return new Creatomate.Image({
       track: 1,
       duration,
-      source: imageBuffer,
+      source: image.url,
       animations: [animation],
       // transition: if last or first, none
       ...(index === 0 || index === images.length - 1 ? {} : { transition }),

@@ -3,8 +3,9 @@ import path from "path";
 import { uploadB64Image } from "../utils/firebaseConnector.js";
 import { loadScript } from "../utils/loadScript.js";
 import openai from "../utils/openai.js";
+import { voiceModel } from "../config/config.js";
 
-async function createVoiceover(video, userScript) {
+async function createVoiceover(video, userScript, channel) {
   /* let voiceover = {};
   try {
     const existsVoiceover = await fs.promises.readFile(
@@ -33,6 +34,10 @@ async function createVoiceover(video, userScript) {
       `./src/assets/video-${video}/video-${video}-voiceover.mp3`,
     );
 
+    const publicFile = path.resolve(
+      `./public/assets/video-${video}-voiceover.mp3`,
+    );
+
     // Ensure the directory exists
     const dir = path.dirname(tempFile);
     await fs.promises.mkdir(dir, { recursive: true });
@@ -40,7 +45,7 @@ async function createVoiceover(video, userScript) {
     // Perform text-to-speech conversion
     const mp3Response = await openai.audio.speech.create({
       model: "tts-1-hd",
-      voice: "onyx",
+      voice: voiceModel[channel] || "onyx",
       input: script,
     });
 
@@ -48,6 +53,7 @@ async function createVoiceover(video, userScript) {
 
     const buffer = Buffer.from(arrayBuffer);
     await fs.promises.writeFile(tempFile, buffer);
+    await fs.promises.writeFile(publicFile, buffer);
 
     const contentType = "audio/mpeg";
 
@@ -63,6 +69,8 @@ async function createVoiceover(video, userScript) {
     };
   } catch (error) {
     console.error("Error in text-to-speech conversion:", error);
+
+    throw error;
   }
 }
 
