@@ -42,9 +42,11 @@ const readDatabase = async ({ empty, id }) => {
     }
 
     // if there are things with priority true, put them at the front
-    const priority = response.results.filter((entry) => {
-      return entry.properties.priority?.checkbox;
-    });
+    const priority = response.results
+      .filter((entry) => {
+        return entry.properties.priority?.checkbox;
+      })
+      .reverse();
 
     const notPriority = response.results
       .filter((entry) => {
@@ -59,6 +61,47 @@ const readDatabase = async ({ empty, id }) => {
     console.error(`Error reading database: ${error}`);
     throw error;
   }
+};
+
+const loadConfig = async () => {
+  const configId = processEnv.NOTION_CONFIG_ID;
+
+  // load all children of the db
+  const db = await notion.databases.query({
+    database_id: configId,
+  });
+
+  const configArray = db.results.map((entry) => {
+    const channel = entry.properties.Channel.title[0].plain_text;
+    const cta = entry.properties.cta.rich_text.length
+      ? entry.properties.cta.rich_text[0].plain_text
+      : "";
+    const styleInstructions = entry.properties.styleInstructions.rich_text
+      .length
+      ? entry.properties.styleInstructions.rich_text[0].plain_text
+      : "";
+    const voiceModel = entry.properties.voiceModel.rich_text.length
+      ? entry.properties.voiceModel.rich_text[0].plain_text
+      : "";
+    const imageStyle = entry.properties.imageStyle.rich_text.length
+      ? entry.properties.imageStyle.rich_text[0].plain_text
+      : "";
+
+    return {
+      channel,
+      cta,
+      styleInstructions,
+      voiceModel,
+      imageStyle,
+    };
+  });
+  // convert to object with channel name as key
+  const config = configArray.reduce((acc, curr) => {
+    acc[curr.channel] = curr;
+    return acc;
+  }, {});
+
+  return config;
 };
 
 const getEntry = async (title) => {
@@ -302,6 +345,7 @@ const init = async () => {
 export {
   init,
   readDatabase,
+  loadConfig,
   getEntry,
   createEntry,
   updateTitle,

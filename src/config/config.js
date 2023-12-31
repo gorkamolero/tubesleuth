@@ -13,31 +13,9 @@ export const width = 1080;
 export const fontFamily = "Montserrat"; // important to change channel style
 export const textTransform = "uppercase"; // change if you don't want all caps... you crazy person
 export const fontWeight = "800"; // that's super bold. regular is 400
-export const fontSize = "4.5vh"; // experiment, I think 2 - 6 is good but 5+ cuts words
+export const fontSize = "4vh"; // experiment, I think 2 - 6 is good but 5+ cuts words
 export const fontColor = `rgba(243,206,50,1)`; // main color of the word being spoken
 export const yPadding = "10 vmin"; // use this to center
-
-export const captionStyles = {
-  // Make the subtitle container as large as the screen with some padding
-  width: "100%",
-  height: "100%",
-  xPadding: "3 vmin",
-  yPadding,
-
-  // Align text to bottom center
-  xAlignment: "50%",
-  yAlignment: "100%",
-
-  // Text style - note that the default fill color is null (transparent)
-  fontFamily,
-  textTransform,
-  fontWeight,
-  fontSize,
-  fontColor,
-  fillColor: null,
-  shadowColor: "rgba(0,0,0,0.65)",
-  shadowBlur: "1.6vmin",
-};
 
 export const captionStylesModern = {
   // Make the subtitle container as large as the screen with some padding
@@ -63,25 +41,4 @@ export const captionStylesModern = {
   shadowColor: "rgba(0,0,0,0.65)",
   shadowBlur: "1.6vmin",
   textShadow: "0px 0px 10px rgba(0,0,0,0.65)",
-};
-
-export const styleInstructions = {
-  whispereroftruths:
-    "Suspenseful, serious and captivating, akin to a mix between Borges and R. L. Stine's writing. Tailor the style to suit the provided theme and always include facts or factoids;",
-  momentsinstockmarket: "Engaging and informative",
-};
-
-export const cta = {
-  whispereroftruths: `What if what you've been told is all a lie? Follow to discover the truth`,
-  momentsinstockmarket: `Follow and subscribe for more moments in stock market history`,
-};
-
-export const frameRate = {
-  whispereroftruths: 60,
-  momentsinstockmarket: 60,
-};
-
-export const voiceModel = {
-  whispereroftruths: "onyx",
-  momentsinstockmarket: "onyx",
 };

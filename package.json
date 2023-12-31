@@ -17,7 +17,7 @@
     "@reactive-video/builder": "^3.1.1",
     "@remotion/bundler": "^4.0.83",
     "@remotion/cli": "^4.0.82",
-    "@remotion/renderer": "^4.0.82",
+    "@remotion/renderer": "^4.0.83",
     "axios": "^1.6.2",
     "buffer": "^6.0.3",
     "creatomate": "^1.0.6",

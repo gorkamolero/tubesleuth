@@ -3,27 +3,9 @@ import path from "path";
 import { uploadB64Image } from "../utils/firebaseConnector.js";
 import { loadScript } from "../utils/loadScript.js";
 import openai from "../utils/openai.js";
-import { voiceModel } from "../config/config.js";
+import { config } from "../main.js";
 
 async function createVoiceover(video, userScript, channel) {
-  /* let voiceover = {};
-  try {
-    const existsVoiceover = await fs.promises.readFile(
-      `src/assets/video-${video}/video-${video}-voiceover.mp3`,
-      "utf-8",
-    );
-
-    if (existsVoiceover) {
-      console.log("📝 Voiceover exists, skipping");
-      const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
-
-      const url = `${firebasePath}/video-${video}%2Fvideo-${video}-voiceover.mp3?alt=media`;
-      return {
-        voiceover: existsVoiceover,
-        url,
-      };
-    }
-  } catch (error) {} */
   try {
     let script = userScript.script;
     if (!userScript) {
@@ -45,7 +27,7 @@ async function createVoiceover(video, userScript, channel) {
     // Perform text-to-speech conversion
     const mp3Response = await openai.audio.speech.create({
       model: "tts-1-hd",
-      voice: voiceModel[channel] || "onyx",
+      voice: config[channel].voiceModel || "onyx",
       input: script,
     });
 
@@ -57,11 +39,16 @@ async function createVoiceover(video, userScript, channel) {
 
     const contentType = "audio/mpeg";
 
-    const url = await uploadB64Image(
-      buffer,
-      `assets/video-${video}/video-${video}-voiceover.mp3`,
-      contentType,
-    );
+    let url = null;
+    try {
+      url = await uploadB64Image(
+        buffer,
+        `assets/video-${video}/video-${video}-voiceover.mp3`,
+        contentType,
+      );
+    } catch (error) {
+      console.error("Error uploading voiceover:", error);
+    }
 
     return {
       voiceover: buffer,

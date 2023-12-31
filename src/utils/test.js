@@ -1,12 +1,13 @@
 import { renderVideo } from "../agents/5-stitcher.js";
 import cleanFiles from "./cleanFiles.js";
+import { loadConfig } from "./notionConnector.js";
 
 const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
 const firebaseURL = (id, imageId) =>
   `${firebasePath}%2Fvideo-${id}%2Fvideo-${id}-${imageId}.png?alt=media`;
 
 const video = "7678448e-c1ce-4840-a42c-91d960ecf1c4";
-const imageMap = [
+export const imageMap = [
   {
     id: 0,
     start: 0,
@@ -205,7 +206,9 @@ const script = {
 
 const init = async () => {
   try {
-    await cleanFiles();
+    // config = await loadConfig();
+
+    console.log("🎥 Stitching video...");
   } catch (error) {
     console.log(error);
   }

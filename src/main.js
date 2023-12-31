@@ -2,14 +2,13 @@ import fs from "fs";
 import { EventEmitter } from "events";
 
 import { formatTime } from "./utils/formatTime.js";
-import { cta, styleInstructions } from "./config/config.js";
 
 import processEnv from "./utils/env.js";
 
 import { askAssistant, promptAssistant } from "./utils/openai.js";
 import createVoiceover from "./agents/1-voiceover.js";
 import transcribeAudio from "./agents/2-scribe.js";
-import generateImagesFromDescriptions from "./agents/4-painter.js";
+import generateImagesFromDescriptions from "./agents/3-painter.js";
 import measurePerformance from "./utils/measurePerformance.js";
 import { replacer } from "./utils/replacer.js";
 import { generateRandomId } from "./utils/generateRandomID.js";
@@ -25,6 +24,7 @@ import {
   updateCheckboxField,
   readProperty,
   updateDateField,
+  loadConfig,
 } from "./utils/notionConnector.js";
 import upload from "./agents/6-uploader.js";
 import { writeJsonToFile } from "./utils/writeJsonToFile.js";
@@ -33,9 +33,11 @@ import cleanFiles from "./utils/cleanFiles.js";
 
 const eventEmitter = new EventEmitter();
 
+export let config = {};
 let videos = [];
 let limit = 10;
-let tTotalStart = performance.now(); // Start the timer before processing begins
+let tTotalStart = performance.now();
+const loop = true;
 
 const createVideo = async (entry) => {
   const channel = readProperty({ entry, property: "channel" }).select.name;
@@ -77,7 +79,7 @@ const createVideo = async (entry) => {
   // read from json file
   let existsScript = false;
 
-  const style = styleInstructions[channel];
+  const style = config[channel].styleInstructions || "";
   script = await askAssistant({
     video,
     assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
@@ -85,7 +87,7 @@ const createVideo = async (entry) => {
       "Create a script for a YouTube Short video, with 'title', 'description', 'script' and 'tags', including #shorts, IN JSON FORMAT for: ",
     question: "🎥 What is the video about?",
     path: `src/assets/video-${video}/video-${video}-script.json`,
-    cta: cta[channel],
+    cta: config[channel].cta,
     debug: false,
     ...(prompt && { prompt }),
     style,
@@ -110,13 +112,16 @@ const createVideo = async (entry) => {
     fieldName: "description",
     richTextContent: script.description,
   });
+
   await updateTagsField({ id, fieldName: "tags", tags: script.tags });
 
   console.log("Step 2: We get a voice actor to read it");
 
   const { voiceover, url } = await createVoiceover(video, script, channel);
 
-  await updateFileField({ id, fieldName: "voiceover", fileUrl: url });
+  if (url) {
+    await updateFileField({ id, fieldName: "voiceover", fileUrl: url });
+  }
 
   t0 = measurePerformance(t0, `🙊 Step 2 complete! The cyber voice is ready!`);
 
@@ -140,8 +145,7 @@ const createVideo = async (entry) => {
 
   t0 = measurePerformance(
     t0,
-    "📝 Step 3 complete! We put their voice through a machine and now we know everything!. The video duration is ",
-    transcription.duration,
+    `📝 Step 3 complete! We put their voice through a machine and now we know everything!. The video duration is ${transcription.duration}`,
   );
 
   console.log("Step 4: We think very hard about what images to show");
@@ -182,7 +186,9 @@ const createVideo = async (entry) => {
     lemon: true,
   });
 
-  eventEmitter.emit("go");
+  if (!loop) {
+    eventEmitter.emit("go");
+  }
 
   t0 = measurePerformance(
     t0,
@@ -229,14 +235,12 @@ const createVideo = async (entry) => {
       await updateCheckboxField({
         id,
         fieldName: "dontupload",
-        checked: false,
+        checked: true,
       });
     }
-  } else {
-    t0 = measurePerformance(t0, "🎬 Video is finished :)");
   }
 
-  await cleanFiles(video);
+  await cleanFiles();
 
   await updateCheckboxField({ id, fieldName: "done", checked: true });
 
@@ -251,10 +255,18 @@ const init = async (debug) => {
     id: false,
   });
 
+  config = await loadConfig();
+
   videos = videos.slice(0, limit);
 
   if (videos.length > 0) {
-    await createVideo(videos[0]);
+    if (loop) {
+      for (const video of videos) {
+        await createVideo(video);
+      }
+    } else {
+      await createVideo(videos[0]);
+    }
   } else {
     console.log("🎥 No videos to process");
   }
