@@ -15,76 +15,10 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Upload",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/6-uploader.js",
-      "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Notion",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/utils/notionConnector.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Export",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/export.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Voiceover",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/1-voiceover.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Scribe",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/2-scribe.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Painter",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/4-painter.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Architect",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/5-architect.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Stitcher",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/5-stitcher.js"
-    },
-
-    {
-      "type": "node",
-      "request": "launch",
       "name": "test",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/src/utils/test.js",
       "console": "integratedTerminal"
-    },
-
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "reactive",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/agents/5-stitcher-reactive.js"
     }
   ]
 }

@@ -23,18 +23,18 @@ import {
   updateRichText,
   updateTagsField,
   updateCheckboxField,
-  updateURLField,
   readProperty,
   updateDateField,
 } from "./utils/notionConnector.js";
 import upload from "./agents/6-uploader.js";
 import { writeJsonToFile } from "./utils/writeJsonToFile.js";
-import { renderVideo } from "./agents/5-stitcher-remotion.js";
+import { renderVideo } from "./agents/5-stitcher.js";
+import cleanFiles from "./utils/cleanFiles.js";
 
 const eventEmitter = new EventEmitter();
 
 let videos = [];
-let limit = 5;
+let limit = 10;
 let tTotalStart = performance.now(); // Start the timer before processing begins
 
 const createVideo = async (entry) => {
@@ -235,6 +235,8 @@ const createVideo = async (entry) => {
   } else {
     t0 = measurePerformance(t0, "🎬 Video is finished :)");
   }
+
+  await cleanFiles(video);
 
   await updateCheckboxField({ id, fieldName: "done", checked: true });
 

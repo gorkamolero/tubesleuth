@@ -8,18 +8,11 @@ const redirectUri = "http://localhost";
 // video category IDs for YouTube:
 const categoryIds = {
   Entertainment: 24,
-  Education: 27,
-  ScienceTechnology: 28,
-  Shorts: 42,
 };
 
 // If modifying these scopes, delete your previously saved credentials in client_oauth_token.json
 const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
 const TOKEN_PATH = "src/config/client_oauth_token.json";
-
-const videoFilePath = "src/assets/video-gywyp99d/video-gywyp99d-output.mp4";
-const videoFileRemotePath =
-  "https://cdn.creatomate.com/renders/4b385c06-7e64-4ce0-8122-40b4d254b204.mp4";
 
 const upload = async ({ videoFilePath, title, description, tags }) => {
   try {
@@ -83,22 +76,6 @@ async function uploadVideo({ videoFilePath, auth, title, description, tags }) {
         return;
       }
       console.log(response.data);
-      /*
-    console.log('Video uploaded. Uploading the thumbnail now.')
-    service.thumbnails.set({
-      auth: auth,
-      videoId: response.data.id,
-      media: {
-        body: fs.createReadStream(thumbFilePath)
-      },
-    }, function(err, response) {
-      if (err) {
-        console.log('The API returned an error: ' + err);
-        return;
-      }
-      console.log(response.data)
-    })
-    */
     },
   );
 }

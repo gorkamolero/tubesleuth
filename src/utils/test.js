@@ -1,4 +1,5 @@
-import { renderVideo } from "../agents/5-stitcher-remotion.js";
+import { renderVideo } from "../agents/5-stitcher.js";
+import cleanFiles from "./cleanFiles.js";
 
 const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
 const firebaseURL = (id, imageId) =>
@@ -204,7 +205,7 @@ const script = {
 
 const init = async () => {
   try {
-    await renderVideo({ video, imageMap, transcription, script });
+    await cleanFiles();
   } catch (error) {
     console.log(error);
   }
