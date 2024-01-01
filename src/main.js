@@ -223,7 +223,7 @@ const createVideos = async (entry) => {
 
   progressBar.update(0, { message: "Step 1: Starting video creation process" });
 
-  t0 = updateProgressBar(
+  t0 = await updateProgressBar(
     progressBar,
     20,
     t0,
@@ -231,7 +231,7 @@ const createVideos = async (entry) => {
   );
 
   const { voiceover, url } = await createVoiceover(video, script, channel);
-  t0 = updateProgressBar(
+  t0 = await updateProgressBar(
     progressBar,
     20,
     t0,
@@ -264,7 +264,7 @@ const createVideos = async (entry) => {
 
   transcription = await transcribeAudio(video, voiceover);
 
-  t0 = updateProgressBar(
+  t0 = await updateProgressBar(
     progressBar,
     40,
     t0,
@@ -285,18 +285,19 @@ const createVideos = async (entry) => {
       console.log("📝 Image map exists, skipping");
       imageMap = JSON.parse(existsImageMap);
     }
-  } catch (error) {}
-  imageMap = await promptAssistant({
-    video,
-    assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
-    instruction:
-      "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ",
-    prompt: JSON.stringify(transcription.segments, replacer),
-    path: imageMapPath,
-    isJSON: true,
-  });
+  } catch (error) {
+    imageMap = await promptAssistant({
+      video,
+      assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
+      instruction:
+        "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ",
+      prompt: JSON.stringify(transcription.segments, replacer),
+      path: imageMapPath,
+      isJSON: true,
+    });
+  }
 
-  t0 = updateProgressBar(
+  t0 = await updateProgressBar(
     progressBar,
     60,
     t0,
@@ -316,7 +317,7 @@ const createVideos = async (entry) => {
       lemon: true,
     }),
   );
-  t0 = updateProgressBar(
+  t0 = await updateProgressBar(
     progressBar,
     80,
     t0,
@@ -337,6 +338,7 @@ const createVideos = async (entry) => {
   await writeJsonToFile(imageMap, imageMapPath);
 
   const stitch = await renderVideo({
+    entry,
     script,
     video,
     imageMap,
@@ -347,7 +349,7 @@ const createVideos = async (entry) => {
     stitch.tags = stitch.tags.join(", ");
   }
 
-  updateProgressBar(progressBar, 90, t0, "Video is ready :)");
+  await updateProgressBar(progressBar, 90, t0, "Video is ready :)");
 
   await updateCheckboxField({ id, property: "done", checked: true });
 

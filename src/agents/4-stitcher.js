@@ -4,11 +4,12 @@ import path from "path";
 
 import { __filename, __dirname } from "../utils/path.js";
 import generateCaptions from "../utils/captions.js";
+import { getRichTextFieldContent } from "../utils/notionConnector.js";
 
 const fps = 30;
 
 export async function renderVideo(inputProps) {
-  const { video, transcription } = inputProps;
+  const { video, transcription, entry, script } = inputProps;
   const subtitles = await generateCaptions({
     video,
     transcription,
@@ -46,12 +47,27 @@ export async function renderVideo(inputProps) {
     verbose: false,
   });
 
+  const title = await getRichTextFieldContent({
+    entry,
+    property: "title",
+  });
+
+  const description = await getRichTextFieldContent({
+    entry,
+    property: "description",
+  });
+
+  const tags = await getRichTextFieldContent({
+    entry,
+    property: "tags",
+  });
+
   const output = {
-    videoId: inputProps.video,
-    title: inputProps.script.title,
-    description: inputProps.script.description,
-    tags: inputProps.script.tags,
-    script: inputProps.script.script,
+    videoId: video,
+    title: title,
+    description,
+    tags,
+    script,
     localFile: `src/out/videos/video-${inputProps.video}.mp4`,
   };
 
