@@ -6,7 +6,19 @@ import processEnv from "./env.js";
 const notion = new Client({ auth: processEnv.NOTION_API_SECRET });
 const tubesleuth = processEnv.NOTION_PAGE_ID;
 
-const readDatabase = async ({ empty, id }) => {
+const readDatabase = async ({ empty, action, limit, priority = false }) => {
+  let actionFilter = {};
+
+  if (action === "createVideos") {
+    // filter by script not empty
+    actionFilter = {
+      property: "script",
+      rich_text: {
+        is_not_empty: true,
+      },
+    };
+  }
+
   const emptyFilter = {
     and: [
       {
@@ -29,34 +41,68 @@ const readDatabase = async ({ empty, id }) => {
       },
     ],
   };
+
+  if (Object.keys(actionFilter).length !== 0) {
+    emptyFilter.and.push(actionFilter);
+  }
+
   try {
     const filter = empty ? emptyFilter : {};
     // make it descending
     const response = await notion.databases.query({
       database_id: tubesleuth,
       filter,
+      sorts: [
+        {
+          direction: "ascending",
+          timestamp: "created_time",
+        },
+      ],
+      ...(limit !== Infinity && { page_size: limit }),
     });
     if (response.length === 0) {
       console.log("❗️ No entries found.");
       return [];
     }
 
-    // if there are things with priority true, put them at the front
-    const priority = response.results
-      .filter((entry) => {
-        return entry.properties.priority?.checkbox;
-      })
-      .reverse();
+    let results = response.results;
 
-    const notPriority = response.results
-      .filter((entry) => {
-        return !entry.properties.priority?.checkbox;
-      })
-      .reverse();
+    if (priority) {
+      // if there are things with priority true, put them at the front
+      const priority = response.results
+        .filter((entry) => {
+          return entry.properties.priority?.checkbox;
+        })
+        .reverse();
 
-    const sorted = [...priority, ...notPriority];
+      const notPriority = response.results
+        .filter((entry) => {
+          return !entry.properties.priority?.checkbox;
+        })
+        .reverse();
 
-    return sorted;
+      results = [...priority, ...notPriority];
+    }
+
+    if (action === "createScripts") {
+      // sort by refineScript not empty first, and reverse the results in both cases
+      results = results.sort((a, b) => {
+        return (
+          b.properties.refineScript.rich_text.length -
+          a.properties.refineScript.rich_text.length
+        );
+      });
+
+      // if refineScript is empty, keep only the ones where script is empty
+
+      results = results.filter((entry) => {
+        if (entry.properties.refineScript.rich_text.length === 0) {
+          return entry.properties.script.rich_text.length === 0;
+        }
+      });
+    }
+
+    return results;
   } catch (error) {
     console.error(`Error reading database: ${error}`);
     throw error;
@@ -163,12 +209,12 @@ const updateTitle = async ({ id, title }) => {
   }
 };
 
-const updateRichText = async ({ id, fieldName, richTextContent }) => {
+const updateRichText = async ({ id, property, richTextContent }) => {
   try {
     const response = await notion.pages.update({
       page_id: id,
       properties: {
-        [fieldName]: {
+        [property]: {
           rich_text: [
             {
               text: { content: richTextContent },
@@ -184,12 +230,12 @@ const updateRichText = async ({ id, fieldName, richTextContent }) => {
   }
 };
 
-const updateURLField = async ({ id, fieldName, url }) => {
+const updateURLField = async ({ id, property, url }) => {
   try {
     const response = await notion.pages.update({
       page_id: id,
       properties: {
-        [fieldName]: {
+        [property]: {
           url,
         },
       },
@@ -201,12 +247,12 @@ const updateURLField = async ({ id, fieldName, url }) => {
   }
 };
 
-const updateTagsField = async ({ id, fieldName = "tags", tags }) => {
+const updateTagsField = async ({ id, property = "tags", tags }) => {
   try {
     const response = await notion.pages.update({
       page_id: id,
       properties: {
-        [fieldName]: {
+        [property]: {
           multi_select: tags.map((tag) => ({ name: tag })),
         },
       },
@@ -218,12 +264,12 @@ const updateTagsField = async ({ id, fieldName = "tags", tags }) => {
   }
 };
 
-const updateImageField = async ({ id, fieldName, urls }) => {
+const updateImageField = async ({ id, property, urls }) => {
   try {
     const response = await notion.pages.update({
       page_id: id,
       properties: {
-        [fieldName]: {
+        [property]: {
           files: urls.map((url) => ({
             type: "external",
             name: "Image",
@@ -239,12 +285,12 @@ const updateImageField = async ({ id, fieldName, urls }) => {
   }
 };
 
-const updateFileField = async ({ id, fieldName, fileUrl }) => {
+const updateFileField = async ({ id, property, fileUrl }) => {
   try {
     const response = await notion.pages.update({
       page_id: id,
       properties: {
-        [fieldName]: {
+        [property]: {
           files: [
             {
               type: "external",
@@ -262,12 +308,12 @@ const updateFileField = async ({ id, fieldName, fileUrl }) => {
   }
 };
 
-const updateCheckboxField = async ({ id, fieldName, checked }) => {
+const updateCheckboxField = async ({ id, property, checked }) => {
   try {
     const response = await notion.pages.update({
       page_id: id,
       properties: {
-        [fieldName]: {
+        [property]: {
           checkbox: checked,
         },
       },
@@ -279,29 +325,16 @@ const updateCheckboxField = async ({ id, fieldName, checked }) => {
   }
 };
 
-const getRichTextFieldContent = async ({ id, fieldName }) => {
-  try {
-    const response = await notion.pages.retrieve({ page_id: pageId });
-
-    if (
-      response.properties[fieldName] &&
-      response.properties[fieldName].rich_text
-    ) {
-      const richTextArray = response.properties[fieldName].rich_text;
-      // Concatenating all text elements into a single string
-      return richTextArray.map((richText) => richText.plain_text).join("");
-    } else {
-      throw new Error(
-        `Field "${fieldName}" not found or is not a Rich Text field.`,
-      );
-    }
-  } catch (error) {
-    console.error(`Error retrieving Rich Text field content: ${error}`);
-    throw error;
-  }
+const getRichTextFieldContent = ({ entry, property }) => {
+  const richTextArray = entry.properties[property].rich_text;
+  // Concatenating all text elements into a single string
+  return richTextArray.map((richText) => richText.plain_text).join("");
 };
 
 const joinRichText = (richTextArray) => {
+  if (!richTextArray.length) {
+    return "";
+  }
   return richTextArray.map((richText) => richText.plain_text).join("\n");
 };
 
@@ -309,12 +342,12 @@ const readProperty = ({ entry, property }) => {
   return entry.properties[property];
 };
 
-const updateDateField = async ({ id, fieldName, date }) => {
+const updateDateField = async ({ id, property, date }) => {
   try {
     const response = await notion.pages.update({
       page_id: id,
       properties: {
-        [fieldName]: {
+        [property]: {
           date: {
             start: date,
           },
@@ -334,7 +367,7 @@ const init = async () => {
   const { id: entryId } = await createEntry();
   const response2 = await updateRichText({
     id: entryId,
-    fieldName: "input",
+    property: "input",
     richTextContent: `testtexto`,
   });
   console.log(response2);

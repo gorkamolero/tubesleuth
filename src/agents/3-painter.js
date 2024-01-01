@@ -2,7 +2,11 @@ import fs from "fs";
 import path from "path";
 import { uploadB64Image } from "../utils/firebaseConnector.js";
 import { Buffer } from "buffer";
-import openai, { askAssistant, regenerateSafePrompt } from "../utils/openai.js";
+import openai, {
+  askAssistant,
+  promptAssistant,
+  regenerateSafePrompt,
+} from "../utils/openai.js";
 import loadDescriptions from "../utils/loadDescriptions.js";
 import terminalImage from "terminal-image";
 import { config } from "../main.js";
@@ -59,10 +63,9 @@ async function generateAndUploadImage(
 ) {
   try {
     let url;
-    const trueDescription = await askAssistant({
+    const trueDescription = await promptAssistant({
       assistant_id: processEnv.ASSISTANT_PHOTOGRAPHER,
-      instruction: `create a prompt for: `,
-      prompt: description,
+      prompt: `create a prompt for: ${description}`,
       isJSON: false,
     });
 

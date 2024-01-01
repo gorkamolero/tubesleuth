@@ -48,6 +48,13 @@ const upload = async ({ videoFilePath, title, description, tags }) => {
 async function uploadVideo({ videoFilePath, auth, title, description, tags }) {
   const service = google.youtube("v3");
 
+  // read vidoe file path
+  const exists = await fs.promises.access(videoFilePath, fs.constants.F_OK);
+
+  if (!exists) {
+    return;
+  }
+
   return service.videos.insert(
     {
       auth: auth,

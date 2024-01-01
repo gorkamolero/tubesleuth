@@ -1,5 +1,7 @@
 import fs from "fs";
-import { EventEmitter } from "events";
+import pLimit from "p-limit";
+import readline from "readline";
+import cliProgress from "cli-progress";
 
 import { formatTime } from "./utils/formatTime.js";
 
@@ -9,13 +11,15 @@ import { askAssistant, promptAssistant } from "./utils/openai.js";
 import createVoiceover from "./agents/1-voiceover.js";
 import transcribeAudio from "./agents/2-scribe.js";
 import generateImagesFromDescriptions from "./agents/3-painter.js";
-import measurePerformance from "./utils/measurePerformance.js";
+import {
+  measurePerformance,
+  updateProgressBar,
+} from "./utils/measurePerformance.js";
 import { replacer } from "./utils/replacer.js";
 import { generateRandomId } from "./utils/generateRandomID.js";
 import {
   createEntry,
   updateTitle,
-  joinRichText,
   readDatabase,
   updateFileField,
   updateImageField,
@@ -25,107 +29,224 @@ import {
   readProperty,
   updateDateField,
   loadConfig,
+  getRichTextFieldContent,
 } from "./utils/notionConnector.js";
-import upload from "./agents/6-uploader.js";
+import upload from "./agents/5-uploader.js";
 import { writeJsonToFile } from "./utils/writeJsonToFile.js";
-import { renderVideo } from "./agents/5-stitcher.js";
-import cleanFiles from "./utils/cleanFiles.js";
+import { renderVideo } from "./agents/4-stitcher.js";
 
-const eventEmitter = new EventEmitter();
+const loop = false;
 
 export let config = {};
 let videos = [];
 let limit = 10;
-let tTotalStart = performance.now();
-const loop = true;
+let channel = "";
+const imageGenerationLimit = pLimit(1);
 
-const createVideo = async (entry) => {
-  const channel = readProperty({ entry, property: "channel" }).select.name;
-  const input = joinRichText(
-    readProperty({ entry, property: "input" }).rich_text,
+const createScripts = async (entry) => {
+  const progressBar = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic,
   );
-  const dontupload = readProperty({ entry, property: "dontupload" });
-  const uploadVid = !dontupload?.checkbox;
-  // let's measure the time it takes to run the whole thing
+
+  progressBar.start(100, 0);
+
   let t0 = performance.now();
   const tStart = t0;
 
-  const video = entry.id ? entry.id : generateRandomId();
-  let id = video;
+  const maxRetries = 3;
 
-  // if no id, we create a new entry
-  if (!entry.id) {
-    id = await createEntry();
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      channel = readProperty({ entry, property: "channel" }).select.name;
+
+      const video = entry.id ? entry.id : generateRandomId();
+      let id = video;
+
+      if (!entry.id) {
+        id = await createEntry();
+      }
+
+      await fs.promises.mkdir(`src/assets/video-${video}`, { recursive: true });
+
+      await updateRichText({
+        id,
+        property: "videoId",
+        richTextContent: video,
+      });
+
+      let script = {};
+      // read from json file
+      let existsScript = false;
+
+      existsScript = getRichTextFieldContent({
+        entry,
+        property: "script",
+      });
+
+      await updateProgressBar(
+        progressBar,
+        20,
+        t0,
+        "Step 1 complete! Starting script creation process",
+      );
+      t0 = performance.now();
+
+      if (existsScript.length > 10) {
+        script = existsScript;
+
+        const refineScript = getRichTextFieldContent({
+          entry,
+          property: "refineScript",
+        });
+
+        if (refineScript.length > 4) {
+          const prompt = refineScript;
+
+          const threadId = getRichTextFieldContent({
+            entry,
+            property: "threadId",
+          });
+
+          const result = await askAssistant({
+            video,
+            assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
+            prompt,
+            instruction:
+              "Please refine the script with the following instructions: ",
+            threadId,
+            isJSON: true,
+          });
+
+          script = result;
+
+          await updateRichText({
+            id,
+            property: "refineScript",
+            richTextContent: "",
+          });
+        }
+      } else {
+        const prompt = getRichTextFieldContent({ entry, property: "input" });
+
+        const style = config[channel].styleInstructions || "";
+        const { answer, threadId, runId, ...rest } = await askAssistant({
+          video,
+          assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
+          instruction:
+            "Create a script for a YouTube Short video, with 'title', 'description', 'script' and 'tags', including #shorts, IN JSON FORMAT for: ",
+          question: "🎥 What is the video about?",
+          path: `src/assets/video-${video}/video-${video}-script.json`,
+          cta: config[channel].cta,
+          debug: false,
+          ...(prompt && { prompt }),
+          style,
+          isJSON: true,
+          // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
+        });
+
+        await updateRichText({
+          id,
+          property: "threadId",
+          richTextContent: threadId,
+        });
+
+        await updateRichText({
+          id,
+          property: "runId",
+          richTextContent: runId,
+        });
+
+        script = rest;
+      }
+
+      if (script?.title) {
+        await updateTitle({
+          id,
+          title: script.title,
+        });
+      }
+
+      if (script?.script) {
+        await updateRichText({
+          id,
+          property: "script",
+          richTextContent: script.script,
+        });
+      }
+
+      if (script?.description) {
+        await updateRichText({
+          id,
+          property: "description",
+          richTextContent: script.description,
+        });
+      }
+
+      if (script?.tags) {
+        await updateTagsField({ id, property: "tags", tags: script.tags });
+      }
+
+      await updateProgressBar(
+        progressBar,
+        100,
+        t0,
+        "Step 5 complete! Finalizing script",
+      );
+      const totalExecutionTime = measurePerformance(t0 - tStart);
+      progressBar.update(100, {
+        message: `Total execution time: ${totalExecutionTime.toFixed(2)}s`,
+      });
+      break;
+    } catch (error) {
+      console.log("Error creating scripts", error);
+    }
   }
 
-  console.log(`🎥 Starting video with id  -   ${video}`);
-  console.log(`🎥 Input for video: ${input}`);
+  progressBar.stop();
+};
 
-  // create dir
+const createVideos = async (entry) => {
+  const channel = readProperty({ entry, property: "channel" }).select.name;
+  const script = getRichTextFieldContent({ entry, property: "script" });
+  const video = getRichTextFieldContent({ entry, property: "videoId" });
+  const id = video;
 
-  await fs.promises.mkdir(`src/assets/video-${video}`, { recursive: true });
+  const progressBar = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic,
+  );
+  let t0 = performance.now();
+  const tStart = t0; // Define tStart here
 
-  await updateRichText({
-    id,
-    fieldName: "videoId",
-    richTextContent: video,
-  });
+  progressBar.start(100, 0);
 
-  // await localCleanup(video);
+  progressBar.update(0, { message: "Step 1: Starting video creation process" });
 
-  const prompt = joinRichText(entry.properties.input.rich_text);
-
-  let script = {};
-  // read from json file
-  let existsScript = false;
-
-  const style = config[channel].styleInstructions || "";
-  script = await askAssistant({
-    video,
-    assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
-    instruction:
-      "Create a script for a YouTube Short video, with 'title', 'description', 'script' and 'tags', including #shorts, IN JSON FORMAT for: ",
-    question: "🎥 What is the video about?",
-    path: `src/assets/video-${video}/video-${video}-script.json`,
-    cta: config[channel].cta,
-    debug: false,
-    ...(prompt && { prompt }),
-    style,
-    isJSON: true,
-    // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
-  });
-
-  t0 = measurePerformance(t0, `🖊  Step 1 complete! Script's done`);
-
-  await updateTitle({
-    id,
-    title: script.title,
-  });
-
-  await updateRichText({
-    id,
-    fieldName: "script",
-    richTextContent: script.script,
-  });
-  await updateRichText({
-    id,
-    fieldName: "description",
-    richTextContent: script.description,
-  });
-
-  await updateTagsField({ id, fieldName: "tags", tags: script.tags });
-
-  console.log("Step 2: We get a voice actor to read it");
+  t0 = updateProgressBar(
+    progressBar,
+    20,
+    t0,
+    "Step 2: We get a voice actor to read it",
+  );
 
   const { voiceover, url } = await createVoiceover(video, script, channel);
+  t0 = updateProgressBar(
+    progressBar,
+    20,
+    t0,
+    "Step 2 complete! The cyber voice is ready!",
+  );
 
   if (url) {
-    await updateFileField({ id, fieldName: "voiceover", fileUrl: url });
+    await updateFileField({ id: video, property: "voiceover", fileUrl: url });
   }
 
   t0 = measurePerformance(t0, `🙊 Step 2 complete! The cyber voice is ready!`);
 
-  console.log("Step 3: We transcribe the voice to find the exact times");
+  progressBar.update(20, {
+    message: "Step 3: Transcribing the voice to find the exact times",
+  });
 
   let transcription = {};
 
@@ -143,12 +264,16 @@ const createVideo = async (entry) => {
 
   transcription = await transcribeAudio(video, voiceover);
 
-  t0 = measurePerformance(
+  t0 = updateProgressBar(
+    progressBar,
+    40,
     t0,
-    `📝 Step 3 complete! We put their voice through a machine and now we know everything!. The video duration is ${transcription.duration}`,
+    `Step 3 complete! We put their voice through a machine and now we know everything! The video duration is ${transcription.duration}`,
   );
 
-  console.log("Step 4: We think very hard about what images to show");
+  progressBar.update(40, {
+    message: "Step 4: Thinking very hard about what images to show",
+  });
 
   let imageMap = [];
   let imageMapPath = `src/assets/video-${video}/video-${video}-imagemap.json`;
@@ -171,33 +296,38 @@ const createVideo = async (entry) => {
     isJSON: true,
   });
 
-  t0 = measurePerformance(
+  t0 = updateProgressBar(
+    progressBar,
+    60,
     t0,
-    `🎨 Step 4 complete! From the cyber voice and script we are creating images!`,
+    "Step 4 complete! From the cyber voice and script we are creating images!",
   );
 
   const numberOfImages = imageMap.length;
 
-  console.log(`🐌 ${numberOfImages} images to be generated now. Hang tight...`);
-
-  const urls = await generateImagesFromDescriptions({
-    video,
-    imageMap,
-    lemon: true,
+  progressBar.update(60, {
+    message: `Step 5: Generating ${numberOfImages} images and uploading to the cyber cloud`,
   });
 
-  if (!loop) {
-    eventEmitter.emit("go");
-  }
-
-  t0 = measurePerformance(
+  const urls = await imageGenerationLimit(() =>
+    generateImagesFromDescriptions({
+      video,
+      imageMap,
+      lemon: true,
+    }),
+  );
+  t0 = updateProgressBar(
+    progressBar,
+    80,
     t0,
-    "📸 Step 5 complete! Images generated and uploaded to the cyber cloud!",
+    "Step 5 complete! Images generated and uploaded to the cyber cloud!",
   );
 
-  console.log("🎬 Stitching it all up, hang tight...");
+  progressBar.update(80, {
+    message: "🎬 Step 6: Stitching it all up, hang tight...",
+  });
 
-  await updateImageField({ id, fieldName: "images", urls });
+  await updateImageField({ id, property: "images", urls });
 
   imageMap = imageMap.map((image, index) => {
     image.url = urls[index];
@@ -217,7 +347,27 @@ const createVideo = async (entry) => {
     stitch.tags = stitch.tags.join(", ");
   }
 
-  t0 = measurePerformance(t0, "🎬 Video is ready :) ");
+  updateProgressBar(progressBar, 90, t0, "Video is ready :)");
+
+  await updateCheckboxField({ id, property: "done", checked: true });
+
+  await updateDateField({ id, property: "date", date: new Date() });
+  // await cleanFiles();
+
+  progressBar.update(100, {
+    message: `Total execution time: ${formatTime(t0 - tStart)} milliseconds`,
+  });
+
+  progressBar.stop();
+};
+
+const uploadVideos = async (entry) => {
+  // Todo: upload videos
+  /*
+
+  const dontupload = readProperty({ entry, property: "dontupload" });
+  const uploadVid = !dontupload?.checkbox;
+
   if (uploadVid) {
     try {
       await upload({
@@ -227,67 +377,82 @@ const createVideo = async (entry) => {
         tags: stitch.tags,
       });
 
-      await updateCheckboxField({ id, fieldName: "uploaded", checked: true });
+      await updateCheckboxField({ id, property: "uploaded", checked: true });
 
-      t0 = measurePerformance(t0, "🎬 Video is uploaded to YouTube :)");
+      updateProgressBar(
+        progressBar,
+        100,
+        t0,
+        "🎬 Video is uploaded to YouTube :)",
+      );
     } catch (error) {
-      console.log("🎬 Video upload failed at :(");
+      updateProgressBar(progressBar, 100, t0, "🎬 Video upload failed :(");
+
       await updateCheckboxField({
         id,
-        fieldName: "dontupload",
+        property: "dontupload",
         checked: true,
       });
     }
   }
 
-  await cleanFiles();
 
-  await updateCheckboxField({ id, fieldName: "done", checked: true });
-
-  await updateDateField({ id, fieldName: "date", date: new Date() });
-
-  console.log(`Total execution time: ${formatTime(t0 - tStart)} milliseconds`);
+  */
 };
 
 const init = async (debug) => {
-  videos = await readDatabase({
-    empty: true,
-    id: false,
+  const actions = {
+    createScripts,
+    createVideos,
+    uploadVideos,
+    // Add more actions here in the future
+  };
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
   });
 
-  config = await loadConfig();
+  rl.question(
+    "What do you want to do?\n1 - Create scripts\n2 - Create videos\n",
+    async (actionAnswer) => {
+      const actionNames = Object.keys(actions);
+      const actionName = actionNames[actionAnswer - 1];
+      const func = actions[actionName];
 
-  videos = videos.slice(0, limit);
-
-  if (videos.length > 0) {
-    if (loop) {
-      for (const video of videos) {
-        await createVideo(video);
+      if (!func) {
+        throw new Error("Invalid action");
       }
-    } else {
-      await createVideo(videos[0]);
-    }
-  } else {
-    console.log("🎥 No videos to process");
-  }
-};
 
-eventEmitter.on("go", async () => {
-  // wait 10 secs
-  await new Promise((resolve) => setTimeout(resolve, 10000));
-  // Start the next job here
-  console.log("Starting the next job...");
-  videos.shift(); // Remove the first video from the array
-  if (videos.length > 0 && videos.length < limit) {
-    await createVideo(videos[0]); // Start the next video
-  } else {
-    let tTotalEnd = performance.now();
-    console.log(
-      `Total execution time for ${limit} videos: ${formatTime(
-        tTotalEnd - tTotalStart,
-      )} milliseconds`,
-    );
-  }
-});
+      rl.question(
+        "How many videos do you want to process? (Leave blank for all)\n",
+        async (limitAnswer) => {
+          limit = limitAnswer ? parseInt(limitAnswer) : Infinity;
+
+          videos = await readDatabase({
+            empty: true,
+            action: actionName,
+            limit,
+          });
+
+          config = await loadConfig();
+
+          videos = videos.slice(0, limit);
+
+          const concurrencyLimit = pLimit(loop ? 1 : 10); // Limit to 1 concurrent promise if loop is true, else 10
+
+          const tasks = videos.map((entry) => {
+            return concurrencyLimit(() => func(entry));
+          });
+
+          // Only 10 `createVideo` calls will be executed concurrently.
+          await Promise.all(tasks);
+
+          rl.close();
+        },
+      );
+    },
+  );
+};
 
 init(false);

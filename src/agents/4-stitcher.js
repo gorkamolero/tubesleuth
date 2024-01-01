@@ -52,7 +52,7 @@ export async function renderVideo(inputProps) {
     description: inputProps.script.description,
     tags: inputProps.script.tags,
     script: inputProps.script.script,
-    localFile: `src/out/video-${inputProps.video}.mp4`,
+    localFile: `src/out/videos/video-${inputProps.video}.mp4`,
   };
 
   return output;

@@ -67,12 +67,15 @@ const ImageComp = ({
 };
 
 const WordCaption = ({ from, durationInFrames, word, activeWordIndex }) => {
+  const preMod = 5;
+  const postMod = 15;
+
   const words = word.split(" ");
   const activeWord = words[activeWordIndex];
   const { fps } = useVideoConfig();
 
   const frame = useCurrentFrame();
-  const localFrame = frame - from;
+  const localFrame = frame - from - preMod;
 
   const scale = spring({
     frame: localFrame < durationInFrames ? localFrame : 0,
@@ -85,7 +88,10 @@ const WordCaption = ({ from, durationInFrames, word, activeWordIndex }) => {
   });
 
   return (
-    <Sequence from={from - 2} durationInFrames={durationInFrames}>
+    <Sequence
+      from={from - preMod}
+      durationInFrames={durationInFrames + postMod}
+    >
       <div
         style={{
           ...captionStylesModern,

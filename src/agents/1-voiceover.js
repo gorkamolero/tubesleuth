@@ -5,12 +5,8 @@ import { loadScript } from "../utils/loadScript.js";
 import openai from "../utils/openai.js";
 import { config } from "../main.js";
 
-async function createVoiceover(video, userScript, channel) {
+async function createVoiceover(video, script, channel) {
   try {
-    let script = userScript.script;
-    if (!userScript) {
-      script = await loadScript(video);
-    }
     // Temporary file to store the MP3
     const tempFile = path.resolve(
       `./src/assets/video-${video}/video-${video}-voiceover.mp3`,
@@ -26,7 +22,7 @@ async function createVoiceover(video, userScript, channel) {
 
     // Perform text-to-speech conversion
     const mp3Response = await openai.audio.speech.create({
-      model: "tts-1-hd",
+      model: "tts-1",
       voice: config[channel].voiceModel || "onyx",
       input: script,
     });

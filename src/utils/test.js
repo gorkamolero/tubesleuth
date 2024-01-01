@@ -1,4 +1,4 @@
-import { renderVideo } from "../agents/5-stitcher.js";
+import { renderVideo } from "../agents/4-stitcher.js";
 import cleanFiles from "./cleanFiles.js";
 import { loadConfig } from "./notionConnector.js";
 

@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 import parseJson from "parse-json";
 import readline from "readline";
-import fs from "fs";
 import processEnv from "./env.js";
 import { writeJsonToFile } from "./writeJsonToFile.js";
 
@@ -15,18 +14,16 @@ const lemon = new OpenAI({
   baseURL: "https://api.lemonfox.ai/v1",
 });
 
-const createThreadAndRun = async ({
-  instruction,
+const sendAndAwaitResponse = async ({
+  thread,
+  message,
   assistant_id,
-  prompt,
   isJSON,
 }) => {
-  const nodeUserMessage = `${instruction} ${prompt}`;
-
-  const thread = await openai.beta.threads.create();
+  // Send message to the thread
   await openai.beta.threads.messages.create(thread.id, {
     role: "user",
-    content: nodeUserMessage,
+    content: message,
   });
 
   let run = await openai.beta.threads.runs.create(thread.id, {
@@ -45,15 +42,15 @@ const createThreadAndRun = async ({
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
-  const answer = messages.filter((message) => message.assistant_id)[0]
-    .content[0].text;
+  const answer = messages.filter((message) => message.role === "assistant")[0]
+    .content[0].text.value;
 
   if (isJSON) {
     let jsonBlock;
-    if (answer.value.includes("```json")) {
-      jsonBlock = answer.value.replace("```json\n", "").replace("```", "");
+    if (answer.includes("```json")) {
+      jsonBlock = answer.replace("```json\n", "").replace("```", "");
     } else {
-      jsonBlock = answer.value;
+      jsonBlock = answer;
     }
     let jsonObject = jsonBlock;
     try {
@@ -61,9 +58,17 @@ const createThreadAndRun = async ({
     } catch (error) {
       console.error(`🛑 ERROR PARSING JSON`, error, jsonBlock);
     }
-    return jsonObject;
+    return {
+      result: jsonObject,
+      threadId: run.thread_id,
+      runId: run.id,
+    };
   } else {
-    return answer.value;
+    return {
+      result: answer,
+      threadId: run.thread_id,
+      runId: run.id,
+    };
   }
 };
 
@@ -85,9 +90,13 @@ export const askAssistant = async ({
   style = "",
   cta = "",
   isJSON = false,
+  threadId = null,
+  override,
 }) => {
   const assistant = await openai.beta.assistants.retrieve(assistant_id);
   const instructions = assistant.instructions;
+
+  const nodeUserMessage = `${instruction} ${originalPrompt}`;
 
   let prompt;
 
@@ -121,34 +130,41 @@ export const askAssistant = async ({
     - Include call to action: ${cta}`
         : "";
 
-    const answer = await createThreadAndRun({
-      instruction,
+    let answer,
+      newThreadId,
+      newRunId = null,
+      thread = threadId
+        ? await openai.beta.threads.retrieve(threadId)
+        : await openai.beta.threads.create();
+
+    const result = await sendAndAwaitResponse({
+      thread,
+      message: nodeUserMessage,
       assistant_id,
-      prompt: prompt + styleInstructions + calltoaction,
-      override: instructions + styleInstructions + calltoaction,
       isJSON,
+      override: override || instructions + styleInstructions + calltoaction,
     });
+
+    answer = result.result;
+    newThreadId = result.threadId;
+    newRunId = result.runId;
 
     if (path) {
       await writeJsonToFile(answer, path);
     }
 
-    return answer;
+    return { ...answer, threadId: newThreadId, runId: newRunId };
   } catch (error) {
-    console.error(error);
+    console.error("ERROR ASKING ASSISTANT" + error.error.message);
   }
 };
 
-export const promptAssistant = async ({
-  assistant_id,
-  instruction,
-  prompt,
-  isJSON,
-}) => {
-  const answer = await createThreadAndRun({
-    instruction,
+export const promptAssistant = async ({ assistant_id, prompt, isJSON }) => {
+  const thread = await openai.beta.threads.create();
+  const { result: answer } = await sendAndAwaitResponse({
+    thread,
+    message: prompt,
     assistant_id,
-    prompt,
     isJSON,
   });
 
