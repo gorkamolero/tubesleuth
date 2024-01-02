@@ -15,34 +15,30 @@ const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
 const TOKEN_PATH = "src/config/client_oauth_token.json";
 
 const upload = async ({ videoFilePath, title, description, tags }) => {
+  // Load client secrets from a local file.
+  const content = await fs.promises.readFile("src/config/client_secret.json");
+
+  // Authorize a client with the loaded credentials, then call the YouTube API.
+  const credentials = JSON.parse(content);
+  const clientSecret = credentials.web.client_secret;
+  const clientId = credentials.web.client_id;
+  const oauth2Client = new OAuth2(clientId, clientSecret, redirectUri);
+
+  let token;
   try {
-    // Load client secrets from a local file.
-    const content = await fs.promises.readFile("src/config/client_secret.json");
-
-    // Authorize a client with the loaded credentials, then call the YouTube API.
-    const credentials = JSON.parse(content);
-    const clientSecret = credentials.web.client_secret;
-    const clientId = credentials.web.client_id;
-    const oauth2Client = new OAuth2(clientId, clientSecret, redirectUri);
-
-    let token;
-    try {
-      token = await fs.promises.readFile(TOKEN_PATH);
-    } catch (err) {
-      token = await getNewToken(oauth2Client);
-    }
-
-    oauth2Client.credentials = JSON.parse(token);
-    await uploadVideo({
-      videoFilePath,
-      auth: oauth2Client,
-      title,
-      description,
-      tags,
-    });
+    token = await fs.promises.readFile(TOKEN_PATH);
   } catch (err) {
-    console.log("Error loading client secret file: " + err);
+    token = await getNewToken(oauth2Client);
   }
+
+  oauth2Client.credentials = JSON.parse(token);
+  await uploadVideo({
+    videoFilePath,
+    auth: oauth2Client,
+    title,
+    description,
+    tags,
+  });
 };
 
 async function uploadVideo({ videoFilePath, auth, title, description, tags }) {
