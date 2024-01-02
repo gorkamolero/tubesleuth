@@ -26,9 +26,9 @@ import {
   updateDateField,
   loadConfig,
 } from "./utils/notionConnector.js";
-import upload from "./agents/6-uploader.js";
+import upload from "./agents/5-uploader.js";
 import { writeJsonToFile } from "./utils/writeJsonToFile.js";
-import { renderVideo } from "./agents/5-stitcher.js";
+import { renderVideo } from "./agents/4-stitcher.js";
 import cleanFiles from "./utils/cleanFiles.js";
 
 const eventEmitter = new EventEmitter();
@@ -37,7 +37,7 @@ export let config = {};
 let videos = [];
 let limit = 10;
 let tTotalStart = performance.now();
-const loop = true;
+const loop = false;
 
 const createVideo = async (entry) => {
   const channel = readProperty({ entry, property: "channel" }).select.name;
@@ -45,13 +45,24 @@ const createVideo = async (entry) => {
     readProperty({ entry, property: "input" }).rich_text,
   );
   const dontupload = readProperty({ entry, property: "dontupload" });
-  const uploadVid = !dontupload?.checkbox;
+  // const uploadVid = !dontupload?.checkbox;
+  const uploadVid = false;
   // let's measure the time it takes to run the whole thing
   let t0 = performance.now();
   const tStart = t0;
 
   const video = entry.id ? entry.id : generateRandomId();
   let id = video;
+
+  const videoFilePath = `src/out/videos/video-${video}.mp4`;
+  try {
+    await fs.promises.access(videoFilePath, fs.constants.F_OK);
+    console.log(`🎥 Output video exists, skipping to next video`);
+    return; // Skip the rest of the function
+  } catch (error) {
+    console.log(`🎥 Output video doesn't exist, continue with the function`);
+    // Video file doesn't exist, continue with the function
+  }
 
   // if no id, we create a new entry
   if (!entry.id) {
@@ -76,24 +87,31 @@ const createVideo = async (entry) => {
   const prompt = joinRichText(entry.properties.input.rich_text);
 
   let script = {};
-  // read from json file
-  let existsScript = false;
-
   const style = config[channel].styleInstructions || "";
-  script = await askAssistant({
-    video,
-    assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
-    instruction:
-      "Create a script for a YouTube Short video, with 'title', 'description', 'script' and 'tags', including #shorts, IN JSON FORMAT for: ",
-    question: "🎥 What is the video about?",
-    path: `src/assets/video-${video}/video-${video}-script.json`,
-    cta: config[channel].cta,
-    debug: false,
-    ...(prompt && { prompt }),
-    style,
-    isJSON: true,
-    // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
-  });
+  let scriptPath = `src/assets/video-${video}/video-${video}-script.json`;
+
+  try {
+    let existsScript = await fs.promises.readFile(scriptPath, "utf-8");
+
+    if (existsScript) {
+      console.log("🖊 Script exists, skipping");
+      script = JSON.parse(existsScript);
+    }
+  } catch (error) {
+    script = await askAssistant({
+      video,
+      assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
+      instruction:
+        "Create a script for a YouTube Short video, with 'title', 'description', 'script' and 'tags', including #shorts, IN JSON FORMAT for: ",
+      question: "🎥 What is the video about?",
+      path: scriptPath,
+      cta: config[channel].cta,
+      debug: false,
+      ...(prompt && { prompt }),
+      style,
+      isJSON: true,
+    });
+  }
 
   t0 = measurePerformance(t0, `🖊  Step 1 complete! Script's done`);
 
@@ -160,16 +178,17 @@ const createVideo = async (entry) => {
       console.log("📝 Image map exists, skipping");
       imageMap = JSON.parse(existsImageMap);
     }
-  } catch (error) {}
-  imageMap = await promptAssistant({
-    video,
-    assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
-    instruction:
-      "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ",
-    prompt: JSON.stringify(transcription.segments, replacer),
-    path: imageMapPath,
-    isJSON: true,
-  });
+  } catch (error) {
+    imageMap = await promptAssistant({
+      video,
+      assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
+      instruction:
+        "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ",
+      prompt: JSON.stringify(transcription.segments, replacer),
+      path: imageMapPath,
+      isJSON: true,
+    });
+  }
 
   t0 = measurePerformance(
     t0,
