@@ -1,6 +1,7 @@
 // Importing the Notion SDK using ES6 syntax
 import { Client } from "@notionhq/client";
 import processEnv from "./env.js";
+import parseJson from "parse-json";
 
 // Initializing a new Notion client with an integration token using environment variable
 const notion = new Client({ auth: processEnv.NOTION_API_SECRET });
@@ -15,6 +16,20 @@ const readDatabase = async ({ empty, action, limit, priority = false }) => {
       property: "script",
       rich_text: {
         is_not_empty: true,
+      },
+    };
+  }
+
+  if (action === "uploadVideos") {
+    // uploaded checkbox must NOT be checked, done either
+    actionFilter = {
+      property: "uploaded",
+      checkbox: {
+        equals: false,
+      },
+      property: "dontupload",
+      checkbox: {
+        equals: false,
       },
     };
   }
@@ -326,6 +341,9 @@ const updateCheckboxField = async ({ id, property, checked }) => {
 };
 
 const getRichTextFieldContent = ({ entry, property }) => {
+  if (!entry.properties[property]) {
+    return "";
+  }
   const richTextArray = entry.properties[property].rich_text;
   // Concatenating all text elements into a single string
   return richTextArray.map((richText) => richText.plain_text).join("");
@@ -340,6 +358,10 @@ const joinRichText = (richTextArray) => {
 
 const readProperty = ({ entry, property }) => {
   return entry.properties[property];
+};
+
+const readSelect = ({ entry, property }) => {
+  return entry.properties[property].select.name;
 };
 
 const updateDateField = async ({ id, property, date }) => {
@@ -357,6 +379,53 @@ const updateDateField = async ({ id, property, date }) => {
     return response;
   } catch (error) {
     console.error(`Error updating date field: ${error}`);
+    throw error;
+  }
+};
+
+const uploadJsonToNotion = async ({ entry, property, json }) => {
+  // Convert JSON to string
+  const jsonString = JSON.stringify(json, null, 2); // 2 is for pretty print
+
+  // Use updateRichText function to upload JSON string
+  const response = await updateRichText({
+    id: entry.id,
+    property: property,
+    richTextContent: jsonString,
+  });
+
+  return response;
+};
+
+const readJsonFromNotion = ({ entry, property }) => {
+  const jsonString = getRichTextFieldContent({ entry, property });
+  if (!jsonString || jsonString.length === 0) return "";
+  const jsonData = parseJson(jsonString);
+  return jsonData;
+};
+
+const readImages = ({ entry, property }) => {
+  if (entry.properties[property] && entry.properties[property].files) {
+    return entry.properties[property].files.map((file) => file.external.url);
+  }
+  return [];
+};
+
+const readSingleFile = ({ entry, property }) => {
+  const exists = entry.properties[property];
+  const files = exists ? entry.properties[property].files : [];
+  if (files.length > 0) {
+    return entry.properties[property].files[0].external.url;
+  }
+  return null;
+};
+
+const loadEntry = async (pageId) => {
+  try {
+    const response = await notion.pages.retrieve({ page_id: pageId });
+    return response;
+  } catch (error) {
+    console.error(`Error loading entry: ${error}`);
     throw error;
   }
 };
@@ -392,4 +461,10 @@ export {
   updateURLField,
   readProperty,
   updateDateField,
+  uploadJsonToNotion,
+  readJsonFromNotion,
+  loadEntry,
+  readImages,
+  readSingleFile,
+  readSelect,
 };

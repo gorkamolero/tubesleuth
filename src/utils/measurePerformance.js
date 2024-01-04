@@ -9,5 +9,5 @@ export const updateProgressBar = (progressBar, progress, start, message) => {
   progressBar.update(progress, {
     message: `${message} Time taken: ${timeTaken.toFixed(2)}s`,
   });
-  return new Promise((resolve) => setTimeout(resolve, 100)); // delay of 100ms
+  return timeTaken;
 };

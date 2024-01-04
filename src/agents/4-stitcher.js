@@ -45,29 +45,11 @@ export async function renderVideo(inputProps) {
     outputLocation,
     inputProps: finalProps,
     verbose: false,
-  });
-
-  const title = await getRichTextFieldContent({
-    entry,
-    property: "title",
-  });
-
-  const description = await getRichTextFieldContent({
-    entry,
-    property: "description",
-  });
-
-  const tags = await getRichTextFieldContent({
-    entry,
-    property: "tags",
+    timeoutInMilliseconds: 1000 * 60 * 60,
   });
 
   const output = {
     videoId: video,
-    title: title,
-    description,
-    tags,
-    script,
     localFile: `src/out/videos/video-${inputProps.video}.mp4`,
   };
 

@@ -61,13 +61,11 @@ const sendAndAwaitResponse = async ({
     return {
       result: jsonObject,
       threadId: run.thread_id,
-      runId: run.id,
     };
   } else {
     return {
       result: answer,
       threadId: run.thread_id,
-      runId: run.id,
     };
   }
 };
@@ -95,8 +93,6 @@ export const askAssistant = async ({
 }) => {
   const assistant = await openai.beta.assistants.retrieve(assistant_id);
   const instructions = assistant.instructions;
-
-  const nodeUserMessage = `${instruction} ${originalPrompt}`;
 
   let prompt;
 
@@ -130,9 +126,10 @@ export const askAssistant = async ({
     - Include call to action: ${cta}`
         : "";
 
+    const nodeUserMessage = `${instruction} ${originalPrompt} ${styleInstructions} ${calltoaction}}`;
+
     let answer,
       newThreadId,
-      newRunId = null,
       thread = threadId
         ? await openai.beta.threads.retrieve(threadId)
         : await openai.beta.threads.create();
@@ -147,13 +144,12 @@ export const askAssistant = async ({
 
     answer = result.result;
     newThreadId = result.threadId;
-    newRunId = result.runId;
 
     if (path) {
       await writeJsonToFile(answer, path);
     }
 
-    return { ...answer, threadId: newThreadId, runId: newRunId };
+    return { ...answer, threadId: newThreadId };
   } catch (error) {
     console.error("ERROR ASKING ASSISTANT" + error.error.message);
   }

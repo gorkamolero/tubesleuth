@@ -157,14 +157,14 @@ const TranscriptionCaptions = () => {
   return (
     <>
       {keyframes.map((keyframe, index) => {
-        const from = keyframe.time * fps;
+        const from = Math.max(0, Math.round(keyframe.time * fps - 0.5 * fps));
         const durationInFrames =
           (keyframes[index + 1]?.time - keyframe.time || 0.5) * fps;
 
         return (
           <WordCaption
             key={index}
-            from={Math.round(from)}
+            from={from}
             durationInFrames={Math.round(durationInFrames)}
             word={keyframe.text}
             activeWordIndex={keyframe.activeWordIndex}

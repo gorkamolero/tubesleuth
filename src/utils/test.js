@@ -1,6 +1,11 @@
 import { renderVideo } from "../agents/4-stitcher.js";
 import cleanFiles from "./cleanFiles.js";
-import { loadConfig } from "./notionConnector.js";
+import {
+  loadConfig,
+  loadEntry,
+  readImages,
+  readJsonFromNotion,
+} from "./notionConnector.js";
 
 const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
 const firebaseURL = (id, imageId) =>
@@ -206,9 +211,15 @@ const script = {
 
 const init = async () => {
   try {
-    // config = await loadConfig();
+    const randomEntryID = "fe6f5db5-c4b7-4ed0-b9a5-bdf217c580d1";
+    const entry = await loadEntry(randomEntryID);
 
-    console.log("🎥 Stitching video...");
+    const existImages = await readImages({
+      entry,
+      property: "images",
+    });
+
+    console.log("🎥 Stitching video...", existImages);
   } catch (error) {
     console.log(error);
   }
