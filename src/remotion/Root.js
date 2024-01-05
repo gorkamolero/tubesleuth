@@ -18,6 +18,11 @@ import { testProps } from "../config/testProps.js";
 
 let isLocal = false;
 
+function convertTimeToFrames(time, fps) {
+  const [hours, minutes, seconds] = time.split(':').map(parseFloat);
+  return Math.round((hours * 3600 + minutes * 60 + seconds) * fps);
+}
+
 const ImageComp = ({
   from,
   durationInFrames,
@@ -66,12 +71,10 @@ const ImageComp = ({
   );
 };
 
-const WordCaption = ({ from, durationInFrames, word, activeWordIndex }) => {
-  const preMod = 5;
-  const postMod = 15;
+const WordCaption = ({ from, durationInFrames, word }) => {
+  const preMod = 0;
+  const postMod = 0;
 
-  const words = word.split(" ");
-  const activeWord = words[activeWordIndex];
   const { fps } = useVideoConfig();
 
   const frame = useCurrentFrame();
@@ -117,7 +120,7 @@ const WordCaption = ({ from, durationInFrames, word, activeWordIndex }) => {
               transform: `scale(${scale})`,
             }}
           >
-            {activeWord}
+            {word}
           </div>
         </div>
       </div>
@@ -130,44 +133,21 @@ const TranscriptionCaptions = () => {
     getInputProps() && Object.keys(getInputProps()).length
       ? getInputProps()
       : testProps;
-  const { transcription, fps } = inputProps;
-  const [keyframes, setKeyframes] = React.useState([]);
-
-  React.useEffect(() => {
-    const segments = transcription.segments;
-    const newKeyframes = [];
-
-    for (const segment of segments) {
-      const startTime = segment.start;
-      const endTime = segment.end;
-      const words = segment.text.split(" ");
-
-      for (let i = 0; i < words.length; i++) {
-        newKeyframes.push({
-          text: segment.text,
-          time: startTime + ((endTime - startTime) / words.length) * i,
-          activeWordIndex: i,
-        });
-      }
-    }
-
-    setKeyframes(newKeyframes);
-  }, [transcription, fps]);
+  const { subtitles, fps } = inputProps;
 
   return (
     <>
-      {keyframes.map((keyframe, index) => {
-        const from = Math.max(0, Math.round(keyframe.time * fps - 0.5 * fps));
-        const durationInFrames =
-          (keyframes[index + 1]?.time - keyframe.time || 0.5) * fps;
+      {subtitles.map((word, index) => {
+        const from = convertTimeToFrames(word.start, fps);
+        let durationInFrames = convertTimeToFrames(word.end, fps) - from;
+        durationInFrames = Math.max(durationInFrames, 1); // Ensure duration is at least 1
 
         return (
           <WordCaption
             key={index}
             from={from}
             durationInFrames={Math.round(durationInFrames)}
-            word={keyframe.text}
-            activeWordIndex={keyframe.activeWordIndex}
+            word={word.speech}
           />
         );
       })}
@@ -231,8 +211,6 @@ export const RemotionRoot = () => {
 
   if (!getInputProps() || !Object.keys(getInputProps()).length) {
     isLocal = true;
-
-    console.log("YOLO", isLocal);
   }
 
   return (

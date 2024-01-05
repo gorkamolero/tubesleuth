@@ -7,10 +7,10 @@ import { config } from "../main.js";
 import {
   getRichTextFieldContent,
   readSingleFile,
-  updateRichText,
 } from "../utils/notionConnector.js";
 import getMP3Duration from "get-mp3-duration";
 import { cutScript } from "../utils/cutScript.js";
+import { __dirname } from "../utils/path.js";
 
 async function createVoiceover({
   video,
@@ -21,12 +21,12 @@ async function createVoiceover({
   redo = false,
 }) {
   // Temporary file to store the MP3
-  const tempFile = path.resolve(
-    `./src/assets/video-${video}/video-${video}-voiceover.mp3`,
+  const tempFile = path.resolve(__dirname, 
+    `../../src/out/voiceovers/video-${video}-voiceover.mp3`,
   );
 
-  const publicFile = path.resolve(
-    `./public/assets/video-${video}-voiceover.mp3`,
+  const publicFile = path.resolve(__dirname, 
+    `../../public/assets/video-${video}-voiceover.mp3`,
   );
   // Ensure the directory exists
   const dir = path.dirname(tempFile);

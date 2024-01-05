@@ -4,24 +4,26 @@ import path from "path";
 
 import { __filename, __dirname } from "../utils/path.js";
 import generateCaptions from "../utils/captions.js";
-import { getRichTextFieldContent } from "../utils/notionConnector.js";
 
 const fps = 30;
 
-export async function renderVideo(inputProps) {
-  const { video, transcription, entry, script } = inputProps;
-  const subtitles = await generateCaptions({
-    video,
-    transcription,
-  });
-  const duration =
-    transcription.segments[transcription.segments.length - 1].end + 1;
-  const durationInFrames = parseInt(duration * fps);
+function timeToSeconds(time) {
+  const [hours, minutes, seconds] = time.split(':').map(parseFloat);
+  return hours * 3600 + minutes * 60 + seconds;
+}
 
-  const outputLocation = path.resolve(`./src/out/videos/video-${video}.mp4`);
+export async function renderVideo(inputProps) {
+  const { video, script } = inputProps;
+  const subtitles = await generateCaptions({video, script});
+  const lastSegment = subtitles[subtitles.length - 1];
+  const totalDuration = timeToSeconds(lastSegment.end);
+
+  const durationInFrames = parseInt(totalDuration * fps);
+
+  const outputLocation = path.resolve(__dirname, `../out/videos/video-${video}.mp4`);
 
   const serveUrl = await bundle({
-    entryPoint: path.resolve("./src/remotion/index.js"),
+    entryPoint: path.resolve(__dirname, "../remotion/index.js"),
     webpackOverride: (config) => config,
   });
 
@@ -44,7 +46,7 @@ export async function renderVideo(inputProps) {
     codec: "h264",
     outputLocation,
     inputProps: finalProps,
-    verbose: false,
+    verbose: true,
     timeoutInMilliseconds: 1000 * 60 * 60,
   });
 

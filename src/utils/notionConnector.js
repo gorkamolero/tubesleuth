@@ -309,7 +309,7 @@ const updateFileField = async ({ id, property, fileUrl }) => {
           files: [
             {
               type: "external",
-              name: "Voiceover", // Or any descriptive name you prefer
+              name: "voiceover", // Or any descriptive name you prefer
               external: { url: fileUrl },
             },
           ],
