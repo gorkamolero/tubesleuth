@@ -7,7 +7,7 @@ import { toFile } from "openai";
 import { __filename, __dirname } from "../utils/path.js";
 
 async function transcribeAudio(video, userAudioFile) {
-  const videopath = `../assets/video-${video}/video-${video}-voiceover.mp3`;
+  const videopath = `../../public/assets/video-${video}/video-${video}-voiceover.mp3`;
 
   let audio;
 

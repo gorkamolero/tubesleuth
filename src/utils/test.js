@@ -1,6 +1,12 @@
-import { renderVideo } from "../agents/5-stitcher.js";
+import { renderVideo } from "../agents/4-stitcher.js";
+import { generateCaptions } from "./captions.js";
 import cleanFiles from "./cleanFiles.js";
-import { loadConfig } from "./notionConnector.js";
+import {
+  loadConfig,
+  loadEntry,
+  readImages,
+  readJsonFromNotion,
+} from "./notionConnector.js";
 
 const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
 const firebaseURL = (id, imageId) =>
@@ -204,11 +210,19 @@ const script = {
   mood: "mysterious",
 };
 
+const text = `Have you ever heard the WHISPER of the wild under a full moon? Imagine you're walking through an ancient forest... your heartbeat SYnchronizing with the thrum of the night... That's when they emerge: the werewolves of Indian-American descent, guardians of a MYSTERIOUS LEGACY that's been passed down through generations...
+
+With eyes gleaming like amber coals, they are the embodiment of two worlds COLLIDING – the spiritual mysticism from the East and the wild lore of the West. But here's a fact that'll send SHIVERS down your spine: historical records suggest these were NOT just tales... some were tribal protectors, revered and feared...
+
+...what if the stories that CHILLED you to the bone were more REALITY than fable? What if what you've been told is all a LIE? This is just the beginning... FOLLOW to discover the TRUTH as we peel back layers of this enigmatic history.`
+
 const init = async () => {
   try {
-    // config = await loadConfig();
+    const video = "d4c3b893-0bb0-41a8-b206-c7fdd0e4ff7e";
 
-    console.log("🎥 Stitching video...");
+    const captions = await generateCaptions({video, script: text});
+
+    console.log("🎥 Stitching video...", captions);
   } catch (error) {
     console.log(error);
   }

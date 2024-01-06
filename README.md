@@ -4,11 +4,8 @@ The Golden Goose
 
 ## 🧰 Usage
 
-### Configuration first!
+yarn install
+npx whisper-node download
 
-Look for the config.js file
-Choose your writer
-Choose your writing style
-Apply your caption styles
 
 Go!

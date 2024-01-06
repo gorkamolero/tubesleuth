@@ -1,10 +1,13 @@
-export const measurePerformance = (start, message) => {
-  const end = performance.now()
-  const timeTakenSec = (end - start) / 1000
-  const minutes = Math.floor(timeTakenSec / 60)
-  const seconds = timeTakenSec % 60
-  console.log(`${message} Time taken: ${minutes}m ${seconds.toFixed(2)}s`)
-  return end
-}
+export const measurePerformance = (start) => {
+  const end = performance.now();
+  const timeTakenSec = (end - start) / 1000;
+  return timeTakenSec;
+};
 
-export default measurePerformance
+export const updateProgressBar = (progressBar, progress, start, message) => {
+  const timeTaken = measurePerformance(start);
+  progressBar.update(progress, {
+    message: `${message} Time taken: ${timeTaken.toFixed(2)}s`,
+  });
+  return timeTaken;
+};

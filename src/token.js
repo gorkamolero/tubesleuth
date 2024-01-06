@@ -1,3 +1,3 @@
-import { getNewToken } from "./agents/6-uploader.js";
+import { getNewToken } from "./agents/5-uploader.js";
 
 getNewToken();
