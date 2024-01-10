@@ -8,19 +8,20 @@ import generateCaptions from "../utils/captions.js";
 const fps = 30;
 
 function timeToSeconds(time) {
-  const [hours, minutes, seconds] = time.split(':').map(parseFloat);
+  const [hours, minutes, seconds] = time.split(":").map(parseFloat);
   return hours * 3600 + minutes * 60 + seconds;
 }
 
 export async function renderVideo(inputProps) {
-  const { video, script } = inputProps;
-  const subtitles = await generateCaptions({video, script});
-  const lastSegment = subtitles[subtitles.length - 1];
-  const totalDuration = timeToSeconds(lastSegment.end);
+  const { video, script, duration } = inputProps;
+  const subtitles = await generateCaptions({ video, script });
 
-  const durationInFrames = parseInt(totalDuration * fps);
+  const durationInFrames = parseInt(duration * fps);
 
-  const outputLocation = path.resolve(__dirname, `../out/videos/video-${video}.mp4`);
+  const outputLocation = path.resolve(
+    __dirname,
+    `../out/videos/video-${video}.mp4`,
+  );
 
   const serveUrl = await bundle({
     entryPoint: path.resolve(__dirname, "../remotion/index.js"),

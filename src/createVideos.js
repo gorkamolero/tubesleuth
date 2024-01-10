@@ -150,6 +150,7 @@ const createVideos = async (entry) => {
         video,
         imageMap,
         transcription,
+        duration: transcription.duration,
       }),
   );
 

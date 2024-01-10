@@ -11,6 +11,8 @@ import {
   Audio,
   getInputProps,
 } from "remotion";
+import { linearTiming, TransitionSeries } from "@remotion/transitions";
+import { fade } from "@remotion/transitions/fade";
 
 import { captionStylesModern } from "../config/config.js";
 import { generateEffectFilter } from "../utils/generateEffectFilter.js";
@@ -19,57 +21,9 @@ import { testProps } from "../config/testProps.js";
 let isLocal = false;
 
 function convertTimeToFrames(time, fps) {
-  const [hours, minutes, seconds] = time.split(':').map(parseFloat);
+  const [hours, minutes, seconds] = time.split(":").map(parseFloat);
   return Math.round((hours * 3600 + minutes * 60 + seconds) * fps);
 }
-
-const ImageComp = ({
-  from,
-  durationInFrames,
-  currentFrame,
-  index,
-  totalImages,
-  effect = "ZoomIn",
-  url,
-}) => {
-  // Calculate the opacity based on the current frame
-  let opacity = 1;
-  const isFirst = index === 0;
-  const isLast = index === totalImages - 1;
-  if (!isFirst && currentFrame < from + 15) {
-    opacity = (currentFrame - from + 15) / 15;
-  } else if (!isLast && currentFrame > from + durationInFrames - 15) {
-    opacity = 1 - (currentFrame - from - durationInFrames + 15) / 15;
-  }
-
-  const { transform } = generateEffectFilter({
-    effect,
-    currentFrame,
-    from,
-    durationInFrames,
-  });
-
-  return (
-    <Sequence
-      from={isFirst ? from : from - 15}
-      durationInFrames={durationInFrames + 30}
-    >
-      <AbsoluteFill>
-        <Img
-          src={url}
-          style={{
-            objectFit: "cover",
-            objectPosition: "center",
-            height: "100%",
-            opacity: opacity,
-            transform,
-            transition: "opacity 0.5s",
-          }}
-        />
-      </AbsoluteFill>
-    </Sequence>
-  );
-};
 
 const WordCaption = ({ from, durationInFrames, word }) => {
   const preMod = 0;
@@ -166,30 +120,43 @@ const Vid = () => {
   let accumulatedFrames = 0;
   return (
     <>
-      {imageMap &&
-        imageMap.map((image, index) => {
-          const durationInFrames = parseInt(
-            image.end * fps - image.start * fps,
-          );
-          const from = accumulatedFrames;
+      <TransitionSeries>
+        {imageMap &&
+          imageMap.map((image, index) => {
+            const durationInFrames =
+              Math.round((image.end - image.start) * fps) + fps;
+            const from = accumulatedFrames;
 
-          // Update accumulatedFrames for the next image
-          accumulatedFrames += durationInFrames;
+            const transitionDuration = fps; // Assuming a fixed transition duration of 30 frames
 
-          return (
-            <ImageComp
-              key={index}
-              video={video}
-              index={index}
-              from={from - 1}
-              durationInFrames={durationInFrames}
-              currentFrame={currentFrame}
-              totalImages={imageMap.length}
-              effect={image.effect}
-              url={image.url}
-            />
-          );
-        })}
+            // Update accumulatedFrames for the next image
+            accumulatedFrames += durationInFrames + transitionDuration;
+
+            const { transform } = generateEffectFilter({
+              effect: image?.effect || "ZoomIn",
+              currentFrame,
+              from,
+              durationInFrames,
+            });
+
+            return image?.url ? (
+              <>
+                <TransitionSeries.Sequence durationInFrames={durationInFrames}>
+                  <Img
+                    src={image?.url}
+                    style={{
+                      transform,
+                    }}
+                  />
+                </TransitionSeries.Sequence>
+                <TransitionSeries.Transition
+                  presentation={fade()}
+                  timing={linearTiming({ durationInFrames: 30 })}
+                />
+              </>
+            ) : null;
+          })}
+      </TransitionSeries>
 
       <TranscriptionCaptions />
 

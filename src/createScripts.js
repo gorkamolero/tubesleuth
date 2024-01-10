@@ -99,7 +99,7 @@ const createScripts = async (entry) => {
         const prompt = getRichTextFieldContent({ entry, property: "input" });
 
         const style = config[channel].styleInstructions || "";
-        const { answer, threadId, ...rest } = await askAssistant({
+        const { threadId, ...answer } = await askAssistant({
           video,
           assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
           instruction:
@@ -111,7 +111,6 @@ const createScripts = async (entry) => {
           ...(prompt && { prompt }),
           style,
           isJSON: true,
-          // testPrompt: "The Lost Pillars of Atlantis: A journey into the Egyptian city of Sais, examining the supposed pillars that hold the records of Atlantis, as claimed by the ancient philosopher Krantor.",
         });
 
         await updateRichText({
@@ -120,7 +119,7 @@ const createScripts = async (entry) => {
           richTextContent: threadId,
         });
 
-        script = rest;
+        script = answer;
       }
 
       if (script?.title) {

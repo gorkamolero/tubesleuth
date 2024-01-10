@@ -21,7 +21,6 @@ const init = async (debug) => {
     createScripts,
     createVideos,
     uploadVideos,
-    // Add more actions here in the future
   };
 
   const rl = readline.createInterface({
@@ -30,7 +29,7 @@ const init = async (debug) => {
   });
 
   rl.question(
-    "What do you want to do?\n1 - Create scripts\n2 - Create videos\n",
+    "What do you want to do?\n1 - Create scripts\n2 - Create videos\n 3 - Upload videos\n",
     async (actionAnswer) => {
       const actionNames = Object.keys(actions);
       const actionName = actionNames[actionAnswer - 1];
@@ -55,7 +54,7 @@ const init = async (debug) => {
 
           videos = videos.slice(0, limit);
 
-          const concurrencyLimit = pLimit(loop ? 1 : 10); // Limit to 1 concurrent promise if loop is true, else 10
+          const concurrencyLimit = pLimit(loop ? 1 : 3);
 
           const tasks = videos.map((entry) => {
             return concurrencyLimit(() =>
