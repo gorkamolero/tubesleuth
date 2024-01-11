@@ -1,6 +1,8 @@
 import fs from "fs";
+import path from "path";
 import readline from "readline";
 import { google } from "googleapis";
+import { __dirname } from "../utils/path.js";
 const OAuth2 = google.auth.OAuth2;
 
 const redirectUri = "http://localhost";
@@ -12,11 +14,12 @@ const categoryIds = {
 
 // If modifying these scopes, delete your previously saved credentials in client_oauth_token.json
 const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
-const TOKEN_PATH = "src/config/client_oauth_token.json";
+const TOKEN_PATH = "../config/client_oauth_token.json";
 
 const upload = async ({ videoFilePath, title, description, tags }) => {
   // Load client secrets from a local file.
-  const content = await fs.promises.readFile("src/config/client_secret.json");
+  const contentPath = path.resolve(__dirname, "../config/client_secret.json");
+  const content = await fs.promises.readFile(contentPath);
 
   // Authorize a client with the loaded credentials, then call the YouTube API.
   const credentials = JSON.parse(content);
@@ -24,9 +27,11 @@ const upload = async ({ videoFilePath, title, description, tags }) => {
   const clientId = credentials.web.client_id;
   const oauth2Client = new OAuth2(clientId, clientSecret, redirectUri);
 
+  const fullTokenPath = path.resolve(__dirname, TOKEN_PATH);
+
   let token;
   try {
-    token = await fs.promises.readFile(TOKEN_PATH);
+    token = await fs.promises.readFile(fullTokenPath, "utf8");
   } catch (err) {
     token = await getNewToken(oauth2Client);
   }
@@ -45,7 +50,13 @@ async function uploadVideo({ videoFilePath, auth, title, description, tags }) {
   const service = google.youtube("v3");
 
   // read vidoe file path
-  const exists = await fs.promises.access(videoFilePath, fs.constants.F_OK);
+  let exists;
+  try {
+    await fs.promises.access(videoFilePath, fs.constants.F_OK);
+    exists = true;
+  } catch (err) {
+    exists = false;
+  }
 
   if (!exists) {
     return;

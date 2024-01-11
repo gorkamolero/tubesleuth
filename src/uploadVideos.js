@@ -1,12 +1,15 @@
-import path, { dirname } from "path";
+import path from "path";
 import upload from "./agents/5-uploader.js";
 import {
   getRichTextFieldContent,
   readProperty,
+  updateCheckboxField,
 } from "./utils/notionConnector.js";
 import { colorArray, multi } from "./utils/multibar.js";
+import { __dirname } from "./utils/path.js";
 
 const uploadVideos = async (entry) => {
+  const id = entry.id;
   console.log(`Creating video with id ${id}`);
 
   const color = colorArray[Math.floor(Math.random() * colorArray.length)];
@@ -20,15 +23,20 @@ const uploadVideos = async (entry) => {
 
   progressBar.start(100, 0);
 
-  const tags = readProperty({ entry, property: "tags" }).multiSelect.join(", ");
-  const title = getRichTextFieldContent({ entry, property: "title" });
+  const tags = readProperty({ entry, property: "tags" })
+    .multi_select.map((tag) => tag.name)
+    .join(", ");
+
+  const title = readProperty({ entry, property: "title" }).title[0].text
+    .content;
+
   const description = getRichTextFieldContent({
     entry,
     property: "description",
   });
 
-  const localVideoPath = `src/out/videos/video-${entry.id}/.mp4`;
-  const localFile = path.resolve(dirname, localVideoPath);
+  const localVideoPath = `../out/videos/video-${entry.id}.mp4`;
+  const localFile = path.resolve(__dirname, localVideoPath);
 
   try {
     progressBar.update(20, {
@@ -46,15 +54,16 @@ const uploadVideos = async (entry) => {
 
     await updateCheckboxField({ id, property: "uploaded", checked: true });
 
-    updateProgressBar(progressBar, 100, t0, "🎬 Video is uploaded :)");
-  } catch (error) {
-    updateProgressBar(progressBar, 100, t0, "🎬 Video upload failed :(");
-
-    await updateCheckboxField({
-      id,
-      property: "dontupload",
-      checked: true,
+    progressBar.update(100, {
+      message: `🎬 Video is uploaded :)`,
     });
+  } catch (error) {
+    progressBar.update(100, {
+      message: `🎬 Video upload failed :(`,
+    });
+  } finally {
+    progressBar.stop();
+    multi.stop();
   }
 };
 

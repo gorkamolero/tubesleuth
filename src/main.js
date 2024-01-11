@@ -29,7 +29,7 @@ const init = async (debug) => {
   });
 
   rl.question(
-    "What do you want to do?\n1 - Create scripts\n2 - Create videos\n 3 - Upload videos\n",
+    "What do you want to do?\n1 - Create scripts\n2 - Create videos\n3 - Upload videos\n",
     async (actionAnswer) => {
       const actionNames = Object.keys(actions);
       const actionName = actionNames[actionAnswer - 1];

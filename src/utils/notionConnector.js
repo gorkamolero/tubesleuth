@@ -8,40 +8,41 @@ const notion = new Client({ auth: processEnv.NOTION_API_SECRET });
 const tubesleuth = processEnv.NOTION_PAGE_ID;
 
 const readDatabase = async ({ empty, action, limit, priority = false }) => {
-  let actionFilter = {};
-
-  if (action === "createVideos") {
-    // filter by script not empty
-    actionFilter = {
-      property: "script",
-      rich_text: {
-        is_not_empty: true,
-      },
-    };
-  }
-
-  if (action === "uploadVideos") {
-    // uploaded checkbox must NOT be checked, done either
-    actionFilter = {
-      property: "uploaded",
-      checkbox: {
-        equals: false,
-      },
-      property: "dontupload",
-      checkbox: {
-        equals: false,
-      },
-    };
-  }
-
   const emptyFilter = {
     and: [
-      {
-        property: "done",
-        checkbox: {
-          equals: false,
-        },
-      },
+      ...(action === "createScripts"
+        ? [
+            {
+              property: "script",
+              rich_text: {
+                is_not_empty: true,
+              },
+            },
+          ]
+        : []),
+      ...(action == "uploadVideos"
+        ? [
+            {
+              property: "uploaded",
+              checkbox: {
+                equals: false,
+              },
+            },
+            {
+              property: "dontupload",
+              checkbox: {
+                equals: false,
+              },
+            },
+          ]
+        : [
+            {
+              property: "done",
+              checkbox: {
+                equals: false,
+              },
+            },
+          ]),
       {
         property: "skip",
         checkbox: {
@@ -56,10 +57,6 @@ const readDatabase = async ({ empty, action, limit, priority = false }) => {
       },
     ],
   };
-
-  if (Object.keys(actionFilter).length !== 0) {
-    emptyFilter.and.push(actionFilter);
-  }
 
   try {
     const filter = empty ? emptyFilter : {};
