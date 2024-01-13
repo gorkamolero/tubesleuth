@@ -214,13 +214,12 @@ const text = `Have you ever heard the WHISPER of the wild under a full moon? Ima
 
 With eyes gleaming like amber coals, they are the embodiment of two worlds COLLIDING – the spiritual mysticism from the East and the wild lore of the West. But here's a fact that'll send SHIVERS down your spine: historical records suggest these were NOT just tales... some were tribal protectors, revered and feared...
 
-...what if the stories that CHILLED you to the bone were more REALITY than fable? What if what you've been told is all a LIE? This is just the beginning... FOLLOW to discover the TRUTH as we peel back layers of this enigmatic history.`
+...what if the stories that CHILLED you to the bone were more REALITY than fable? What if what you've been told is all a LIE? This is just the beginning... FOLLOW to discover the TRUTH as we peel back layers of this enigmatic history.`;
 
 const init = async () => {
   try {
-    const video = "d4c3b893-0bb0-41a8-b206-c7fdd0e4ff7e";
-
-    const captions = await generateCaptions({video, script: text});
+    const video = "d68d9483-b1b7-412a-b057-73ef45483242";
+    const captions = await cleanFiles(video);
 
     console.log("🎥 Stitching video...", captions);
   } catch (error) {

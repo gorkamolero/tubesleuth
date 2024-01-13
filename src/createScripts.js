@@ -98,7 +98,7 @@ const createScripts = async (entry) => {
       } else {
         const prompt = getRichTextFieldContent({ entry, property: "input" });
 
-        const style = config[channel].styleInstructions || "";
+        const style = config[channel]?.styleInstructions || "";
         const { threadId, ...answer } = await askAssistant({
           video,
           assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,

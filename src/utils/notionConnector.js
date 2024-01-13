@@ -15,6 +15,16 @@ const readDatabase = async ({ empty, action, limit, priority = false }) => {
             {
               property: "script",
               rich_text: {
+                is_empty: true,
+              },
+            },
+          ]
+        : []),
+      ...(action === "createVideos"
+        ? [
+            {
+              property: "script",
+              rich_text: {
                 is_not_empty: true,
               },
             },
@@ -53,6 +63,12 @@ const readDatabase = async ({ empty, action, limit, priority = false }) => {
         property: "input",
         rich_text: {
           is_not_empty: true,
+        },
+      },
+      {
+        property: "channel",
+        select: {
+          does_not_equal: "TBD",
         },
       },
     ],
