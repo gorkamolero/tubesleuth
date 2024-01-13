@@ -91,7 +91,7 @@ const TranscriptionCaptions = () => {
 
   return (
     <>
-      {subtitles.map((word, index) => {
+      {subtitles && subtitles?.map((word, index) => {
         const from = convertTimeToFrames(word.start, fps);
         let durationInFrames = convertTimeToFrames(word.end, fps) - from;
         durationInFrames = Math.max(durationInFrames, 1); // Ensure duration is at least 1

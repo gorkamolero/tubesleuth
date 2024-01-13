@@ -6,6 +6,6 @@ The Golden Goose
 
 yarn install
 npx whisper-node download
-
+install .env and env.json and firebase config file on /src/config
 
 Go!

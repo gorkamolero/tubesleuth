@@ -90,6 +90,7 @@ const createVideos = async (entry) => {
     });
 
     try {
+      // TODO: upload as file instead!
       await uploadJsonToNotion({
         entry,
         property: "imageMap",

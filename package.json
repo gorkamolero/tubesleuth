@@ -16,6 +16,7 @@
     "@puppeteer/browsers": "^1.9.0",
     "@reactive-video/builder": "^3.1.1",
     "@remotion/bundler": "^4.0.83",
+    "@remotion/cli": "^4.0.85",
     "@remotion/renderer": "^4.0.83",
     "@remotion/transitions": "^4.0.84",
     "ansi-colors": "^4.1.3",

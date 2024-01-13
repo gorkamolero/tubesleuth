@@ -88,6 +88,7 @@ async function createVoiceover({
 
   let url = null;
   try {
+    // TODO: upload to Notion instead
     url = await uploadB64Image(
       voiceover,
       `assets/video-${video}/video-${video}-voiceover.mp3`,
