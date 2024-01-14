@@ -410,6 +410,23 @@ const uploadJsonToNotion = async ({ entry, property, json }) => {
   return response;
 };
 
+const uploadJsonToNotionAsFile = async ({ entry, property, json }) => {
+  // Convert JSON to string
+  const jsonString = JSON.stringify(json, null, 2);
+  const jsonFile = new File([jsonString], "jsonFile.json", {
+    type: "application/json",
+  });
+
+  // Use updateRichText function to upload JSON string
+  const response = await updateFileField({
+    id: entry.id,
+    property: property,
+    fileUrl: jsonFile,
+  });
+
+  return response;
+};
+
 const readJsonFromNotion = ({ entry, property }) => {
   const jsonString = getRichTextFieldContent({ entry, property });
   if (!jsonString || jsonString.length === 0) return "";
@@ -475,6 +492,7 @@ export {
   readProperty,
   updateDateField,
   uploadJsonToNotion,
+  uploadJsonToNotionAsFile,
   readJsonFromNotion,
   loadEntry,
   readImages,

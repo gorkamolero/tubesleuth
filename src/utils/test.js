@@ -6,6 +6,7 @@ import {
   loadEntry,
   readImages,
   readJsonFromNotion,
+  uploadJsonToNotionAsFile,
 } from "./notionConnector.js";
 
 const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
@@ -218,9 +219,6 @@ With eyes gleaming like amber coals, they are the embodiment of two worlds COLLI
 
 const init = async () => {
   try {
-    const video = "d68d9483-b1b7-412a-b057-73ef45483242";
-    const captions = await cleanFiles(video);
-
     console.log("🎥 Stitching video...", captions);
   } catch (error) {
     console.log(error);

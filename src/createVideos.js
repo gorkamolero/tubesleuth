@@ -22,8 +22,11 @@ import { renderVideo } from "./agents/4-stitcher.js";
 import cleanFiles from "./utils/cleanFiles.js";
 import { imageGenerationLimit, stitchLimit } from "./main.js";
 import { colorArray, multi } from "./utils/multibar.js";
+import { createFolders } from "./utils/createFolders.js";
 
 const createVideos = async (entry) => {
+  await createFolders();
+
   const channel = readProperty({ entry, property: "channel" }).select.name;
   const script = getRichTextFieldContent({ entry, property: "script" });
   const video = getRichTextFieldContent({ entry, property: "videoId" });
