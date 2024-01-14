@@ -27,8 +27,10 @@ const uploadVideos = async (entry) => {
     .multi_select.map((tag) => tag.name)
     .join(", ");
 
-  const title = readProperty({ entry, property: "title" }).title[0].text
-    .content;
+  const title = getRichTextFieldContent({
+    entry,
+    property: "title",
+  });
 
   const description = getRichTextFieldContent({
     entry,

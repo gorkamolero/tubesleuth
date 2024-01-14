@@ -357,7 +357,10 @@ const getRichTextFieldContent = ({ entry, property }) => {
   if (!entry.properties[property]) {
     return "";
   }
-  const richTextArray = entry.properties[property].rich_text;
+  const richTextArray =
+    entry.properties[property]?.rich_text ||
+    entry.properties[property]?.title ||
+    [];
   // Concatenating all text elements into a single string
   return richTextArray.map((richText) => richText.plain_text).join("");
 };
