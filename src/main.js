@@ -1,7 +1,11 @@
 import pLimit from "p-limit";
 import readline from "readline";
 
-import { readDatabase, loadConfig } from "./utils/notionConnector.js";
+import {
+  readDatabase,
+  loadConfig,
+  readProperty,
+} from "./utils/notionConnector.js";
 import createScripts from "./createScripts.js";
 import createVideos from "./createVideos.js";
 import uploadVideos from "./uploadVideos.js";
@@ -51,6 +55,24 @@ const init = async (debug) => {
           });
 
           config = await loadConfig();
+
+          if (actionName === "createScripts") {
+            // Group videos by series
+            const seriesMap = new Map();
+            videos.forEach((video) => {
+              const series =
+                readProperty({ entry: video, property: "series" })?.select
+                  ?.name || "default";
+              const seriesVideos = seriesMap.get(series) || [];
+              seriesVideos.push(video);
+              seriesMap.set(series, seriesVideos);
+            });
+
+            for (const [series, seriesVideos] of seriesMap) {
+              await func(seriesVideos);
+            }
+            return;
+          }
 
           videos = videos.slice(0, limit);
 
