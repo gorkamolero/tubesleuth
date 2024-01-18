@@ -34,6 +34,9 @@ const sendAndAwaitResponse = async ({
   let messages;
 
   while (run.status !== "completed") {
+    if (run.status === "failed") {
+      throw new Error("Run failed");
+    }
     run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
     messageList = await openai.beta.threads.messages.list(thread.id);
     messages = messageList.data;

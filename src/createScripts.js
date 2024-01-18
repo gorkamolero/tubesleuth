@@ -62,39 +62,6 @@ const createScripts = async (entry) => {
 
       if (existsScript.length > 10) {
         script = existsScript;
-
-        const refineScript = getRichTextFieldContent({
-          entry,
-          property: "refineScript",
-        });
-
-        if (refineScript.length > 4) {
-          const prompt = refineScript;
-
-          const threadId = getRichTextFieldContent({
-            entry,
-            property: "threadId",
-          });
-
-          const result = await askAssistant({
-            video,
-            assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
-            prompt,
-            instruction:
-              "Please refine the script with the following instructions: ",
-            threadId,
-            cta: config[channel].cta,
-            isJSON: true,
-          });
-
-          script = result;
-
-          await updateRichText({
-            id,
-            property: "refineScript",
-            richTextContent: "",
-          });
-        }
       } else {
         const prompt = getRichTextFieldContent({ entry, property: "input" });
 

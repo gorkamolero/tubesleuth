@@ -113,16 +113,7 @@ const readDatabase = async ({ empty, action, limit, priority = false }) => {
     }
 
     if (action === "createScripts") {
-      // sort by refineScript not empty first, and reverse the results in both cases
-      results = results.sort((a, b) => {
-        return (
-          b.properties.refineScript.rich_text.length -
-          a.properties.refineScript.rich_text.length
-        );
-      });
-
       // if refineScript is empty, keep only the ones where script is empty
-
       // results = results.filter((entry) => {
       //   if (entry.properties.refineScript.rich_text.length === 0) {
       //     return entry.properties.script.rich_text.length === 0;
