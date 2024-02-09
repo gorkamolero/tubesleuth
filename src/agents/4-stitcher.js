@@ -13,8 +13,8 @@ function timeToSeconds(time) {
 }
 
 export async function renderVideo(inputProps) {
-  const { video, script, duration } = inputProps;
-  const subtitles = await generateCaptions({ video, script });
+  const { video, duration, voiceoverUrl } = inputProps;
+  const subtitles = await generateCaptions({ voiceoverUrl });
 
   const durationInFrames = parseInt(duration * fps);
 

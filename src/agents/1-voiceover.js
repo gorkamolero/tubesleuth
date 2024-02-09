@@ -21,11 +21,13 @@ async function createVoiceover({
   redo = false,
 }) {
   // Temporary file to store the MP3
-  const tempFile = path.resolve(__dirname, 
+  const tempFile = path.resolve(
+    __dirname,
     `../../src/out/voiceovers/video-${video}-voiceover.mp3`,
   );
 
-  const publicFile = path.resolve(__dirname, 
+  const publicFile = path.resolve(
+    __dirname,
     `../../public/assets/video-${video}-voiceover.mp3`,
   );
   // Ensure the directory exists
@@ -86,10 +88,10 @@ async function createVoiceover({
 
   const contentType = "audio/mpeg";
 
-  let url = null;
+  let voiceoverUrl = null;
   try {
     // TODO: upload to Notion instead
-    url = await uploadB64Image(
+    voiceoverUrl = await uploadB64Image(
       voiceover,
       `assets/video-${video}/video-${video}-voiceover.mp3`,
       contentType,
@@ -100,7 +102,7 @@ async function createVoiceover({
 
   return {
     voiceover,
-    url,
+    voiceoverUrl,
   };
 }
 

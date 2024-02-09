@@ -32,29 +32,30 @@ export function generateEffectFilter({
 }) {
   let transform = "";
 
-  const progress = (currentFrame - from) / durationInFrames;
+  const progress = Math.max(
+    0,
+    Math.min(1, (currentFrame - from) / durationInFrames),
+  ); // Ensures progress is between 0 and 1
 
   switch (effect) {
     case "ZoomIn":
-      transform = `scale(${1 + progress * 0.1})`;
+      transform = `scale(${Math.min(1.1, 1 + progress * 0.1)})`; // Caps the maximum scale at 1.1
       break;
     case "ZoomOut":
-      transform = `scale(${1.1 - progress * 0.1})`;
+      transform = `scale(${Math.max(1, 1.1 - progress * 0.1)})`; // Ensures scale does not go below 1
       break;
     case "PanLeft":
-      transform = `translateX(${-progress * 10}%) scale(1.2)`;
-      break;
     case "PanRight":
-      transform = `translateX(${progress * 10}%) scale(1.2)`;
+      const translateX = Math.min(10, progress * 10); // Caps the maximum translateX at 10%
+      transform = `translateX(${effect === "PanLeft" ? -translateX : translateX}%) scale(1.2)`;
       break;
     case "PanUp":
-      transform = `translateY(${-progress * 10}%) scale(1.2)`;
-      break;
     case "PanDown":
-      transform = `translateY(${progress * 10}%) scale(1.2)`;
+      const translateY = Math.min(10, progress * 10); // Caps the maximum translateY at 10%
+      transform = `translateY(${effect === "PanUp" ? -translateY : translateY}%) scale(1.2)`;
       break;
     default:
-      transform = "scale(1.1)";
+      transform = "scale(1)";
   }
 
   return {

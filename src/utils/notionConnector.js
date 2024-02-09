@@ -152,12 +152,24 @@ const loadConfig = async () => {
       ? entry.properties.imageStyle.rich_text[0].plain_text
       : "";
 
+    const customScriptwriter = entry.properties.customScriptwriter.rich_text
+      .length
+      ? entry.properties.customScriptwriter.rich_text[0].plain_text
+      : null;
+
+    const customPhotographer = entry.properties.customPhotographer.rich_text
+      .length
+      ? entry.properties.customPhotographer.rich_text[0].plain_text
+      : null;
+
     return {
       channel,
       cta,
       styleInstructions,
       voiceModel,
       imageStyle,
+      customScriptwriter,
+      customPhotographer,
     };
   });
   // convert to object with channel name as key

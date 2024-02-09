@@ -3,7 +3,6 @@ import path from "path";
 import { uploadB64Image } from "../utils/firebaseConnector.js";
 import { Buffer } from "buffer";
 import openai, {
-  askAssistant,
   promptAssistant,
   regenerateSafePrompt,
 } from "../utils/openai.js";
@@ -14,7 +13,11 @@ import { config } from "../main.js";
 import { __filename, __dirname } from "../utils/path.js";
 import processEnv from "../utils/env.js";
 
-async function generateImageWithLemonFox(description, retryCount = 3) {
+async function generateImageWithLemonFox({
+  description,
+  retryCount = 3,
+  channel,
+}) {
   try {
     const response = await fetch(
       "https://api.lemonfox.ai/v1/images/generations",
@@ -30,7 +33,14 @@ async function generateImageWithLemonFox(description, retryCount = 3) {
         }),
       },
     );
-    const { data } = await response.json();
+    const json = await response.json();
+    const { data } = json;
+    if (!data || (data.length === 0 && json.error)) {
+      throw {
+        ...json.error,
+        status: json.status,
+      };
+    }
     const url = data[0].url;
     return url;
   } catch (error) {
@@ -38,14 +48,20 @@ async function generateImageWithLemonFox(description, retryCount = 3) {
       console.log(
         `Retrying generateImageWithLemonFox, attempts left: ${retryCount - 1}`,
       );
-      return generateImageWithLemonFox(description, retryCount - 1);
+      return generateImageWithLemonFox({
+        description,
+        retryCount: retryCount - 1,
+        channel,
+      });
+    } else if (error.status === 503) {
+      return generateImageWithOpenAI({ description, channel });
     } else {
       throw error;
     }
   }
 }
 
-async function generateImageWithOpenAI(description) {
+async function generateImageWithOpenAI({ description, channel }) {
   return await openai.images.generate({
     model: "dall-e-3",
     prompt: `NEVER USE TEXT / ONLY ONE IMAGE / ${config[channel].imageStyle} - ${description}`,
@@ -55,24 +71,34 @@ async function generateImageWithOpenAI(description) {
   });
 }
 
-async function generateAndUploadImage(
+async function generateAndUploadImage({
   video,
   description,
   index,
   lemon = false,
-) {
+  channel,
+}) {
   try {
+    const customPhotographer = config[channel]?.customPhotographer;
+
     let url;
     const trueDescription = await promptAssistant({
-      assistant_id: processEnv.ASSISTANT_PHOTOGRAPHER,
+      assistant_id: customPhotographer || processEnv.ASSISTANT_PHOTOGRAPHER,
       prompt: `create a prompt for: ${description}`,
       isJSON: false,
     });
 
     if (lemon) {
-      url = await generateImageWithLemonFox(trueDescription);
+      url = await generateImageWithLemonFox({
+        description: trueDescription,
+        retryCount: 3,
+        channel,
+      });
     } else {
-      const response = await generateImageWithOpenAI(trueDescription);
+      const response = await generateImageWithOpenAI({
+        description: trueDescription,
+        channel,
+      });
       const image_b64 = response.data[0].b64_json;
 
       const bufferObj = Buffer.from(image_b64, "base64");
@@ -122,6 +148,7 @@ async function generateImagesFromDescriptions({
   video,
   imageMap,
   lemon = false,
+  channel,
 }) {
   try {
     const descriptions = imageMap
@@ -131,7 +158,13 @@ async function generateImagesFromDescriptions({
     // Generate and upload images in parallel
     const urls = await Promise.all(
       descriptions.map((description, index) =>
-        generateAndUploadImage(video, description, index + 1, lemon),
+        generateAndUploadImage({
+          video,
+          description,
+          index: index + 1,
+          lemon,
+          channel,
+        }),
       ),
     );
 

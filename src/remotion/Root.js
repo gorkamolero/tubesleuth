@@ -25,6 +25,10 @@ function convertTimeToFrames(time, fps) {
   return Math.round((hours * 3600 + minutes * 60 + seconds) * fps);
 }
 
+function convertMsToFrames(ms, fps) {
+  return Math.round((ms / 1000) * fps);
+}
+
 const WordCaption = ({ from, durationInFrames, word }) => {
   const preMod = 0;
   const postMod = 0;
@@ -91,20 +95,27 @@ const TranscriptionCaptions = () => {
 
   return (
     <>
-      {subtitles && subtitles?.map((word, index) => {
-        const from = convertTimeToFrames(word.start, fps);
-        let durationInFrames = convertTimeToFrames(word.end, fps) - from;
-        durationInFrames = Math.max(durationInFrames, 1); // Ensure duration is at least 1
+      {subtitles &&
+        subtitles?.map((word, index) => {
+          const from = convertMsToFrames(word.start, fps);
+          let durationInFrames = convertMsToFrames(word.end, fps) - from;
+          durationInFrames = Math.max(durationInFrames, 1); // Ensure duration is at least 1
 
-        return (
-          <WordCaption
-            key={index}
-            from={from}
-            durationInFrames={Math.round(durationInFrames)}
-            word={word.speech}
-          />
-        );
-      })}
+          // remove commas and other punctuation signs
+          const cleanWord = word.text.replace(
+            /[\.,-\/#!$%\^&\*;:{}=\-_`~()]/g,
+            "",
+          );
+
+          return (
+            <WordCaption
+              key={index}
+              from={from}
+              durationInFrames={Math.round(durationInFrames)}
+              word={cleanWord}
+            />
+          );
+        })}
     </>
   );
 };
@@ -115,7 +126,7 @@ const Vid = () => {
     getInputProps() && Object.keys(getInputProps()).length
       ? getInputProps()
       : testProps;
-  const { video, imageMap, fps, script } = inputProps;
+  const { video, imageMap, fps, script, mood = "deep" } = inputProps;
 
   let accumulatedFrames = 0;
   return (
@@ -164,7 +175,10 @@ const Vid = () => {
         {isLocal || (
           <Audio src={staticFile(`assets/video-${video}-voiceover.mp3`)} />
         )}
-        <Audio src={staticFile(`${script?.mood || "deep"}.mp3`)} volume={0.2} />
+        <Audio
+          src={staticFile(`${mood || script?.mood || "deep"}.mp3`)}
+          volume={0.2}
+        />
       </AbsoluteFill>
     </>
   );

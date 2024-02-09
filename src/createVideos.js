@@ -31,6 +31,7 @@ const createVideos = async (entry) => {
   const script = getRichTextFieldContent({ entry, property: "script" });
   const video = getRichTextFieldContent({ entry, property: "videoId" });
   const redo = readProperty({ entry, property: "redo" }).checkbox;
+  const mood = getRichTextFieldContent({ entry, property: "mood" }) ?? "deep";
   const id = video;
 
   console.log(`Creating video with id ${id}`);
@@ -52,7 +53,7 @@ const createVideos = async (entry) => {
   });
   t0 = performance.now();
 
-  const { voiceover, url } = await createVoiceover({
+  const { voiceover, voiceoverUrl } = await createVoiceover({
     video,
     entry,
     script,
@@ -60,8 +61,12 @@ const createVideos = async (entry) => {
     redo,
   });
 
-  if (url) {
-    await updateFileField({ id: video, property: "voiceover", fileUrl: url });
+  if (voiceoverUrl) {
+    await updateFileField({
+      id: video,
+      property: "voiceover",
+      fileUrl: voiceoverUrl,
+    });
   }
 
   t0 = performance.now();
@@ -130,6 +135,7 @@ const createVideos = async (entry) => {
                 video,
                 imageMap,
                 lemon: true,
+                channel,
               }),
           );
 
@@ -146,15 +152,17 @@ const createVideos = async (entry) => {
 
   await updateImageField({ id, property: "images", urls });
 
+  // MAGIC HAPPENS HERE
   await stitchLimit(
     async () =>
       await renderVideo({
         entry,
-        script,
         video,
         imageMap,
         transcription,
         duration: transcription.duration,
+        voiceoverUrl,
+        mood,
       }),
   );
 

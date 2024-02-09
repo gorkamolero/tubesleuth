@@ -1,5 +1,4 @@
 import { renderVideo } from "../agents/4-stitcher.js";
-import { generateCaptions } from "./captions.js";
 import cleanFiles from "./cleanFiles.js";
 import {
   loadConfig,
@@ -9,9 +8,13 @@ import {
   uploadJsonToNotionAsFile,
 } from "./notionConnector.js";
 
+import { AssemblyAI } from "assemblyai";
+
 const firebasePath = `https://firebasestorage.googleapis.com/v0/b/tubesleuth.appspot.com/o/assets`;
 const firebaseURL = (id, imageId) =>
   `${firebasePath}%2Fvideo-${id}%2Fvideo-${id}-${imageId}.png?alt=media`;
+const firebaseVoiceoverURL = (id) =>
+  `${firebasePath}%2Fvideo-${id}%2Fvideo-${id}-voiceover.mp3?alt=media`;
 
 const video = "7678448e-c1ce-4840-a42c-91d960ecf1c4";
 export const imageMap = [
@@ -217,6 +220,28 @@ With eyes gleaming like amber coals, they are the embodiment of two worlds COLLI
 
 ...what if the stories that CHILLED you to the bone were more REALITY than fable? What if what you've been told is all a LIE? This is just the beginning... FOLLOW to discover the TRUTH as we peel back layers of this enigmatic history.`;
 
+const client = new AssemblyAI({
+  apiKey: "2b5698ed9d4d426cb65b1f5bcf33c257",
+});
+
+const id = "0a23a863-8484-4055-9cc3-3c317129a572";
+const audioUrl = firebaseVoiceoverURL(id);
+
+const config = {
+  audio: audioUrl,
+};
+
+const run = async () => {
+  const transcript = await client.transcripts.transcribe(config);
+  console.log(transcript.text);
+
+  for (let utterance of transcript.utterances) {
+    console.log(`Speaker ${utterance.speaker}: ${utterance.text}`);
+  }
+
+  console.log(transcript.text);
+};
+
 const init = async () => {
   try {
     console.log("🎥 Stitching video...", captions);
@@ -225,4 +250,4 @@ const init = async () => {
   }
 };
 
-init();
+run();

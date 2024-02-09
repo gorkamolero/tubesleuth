@@ -5,7 +5,7 @@ import processEnv from "./env.js";
 import { writeJsonToFile } from "./writeJsonToFile.js";
 
 const openai = new OpenAI({
-  apiKey: processEnv.OPENAI_API_KEY,
+  apiKey: processEnv.OPENAI_API_KEY_OLD,
   organization: processEnv.OPENAI_ORG_ID,
 });
 

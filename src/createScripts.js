@@ -65,10 +65,13 @@ const createScripts = async (entry) => {
       } else {
         const prompt = getRichTextFieldContent({ entry, property: "input" });
 
+        const customScriptwriter = config[channel]?.customScriptwriter;
+
         const style = config[channel]?.styleInstructions || "";
         const { threadId, ...answer } = await askAssistant({
           video,
-          assistant_id: processEnv.ASSISTANT_SCRIPTWRITER_ID,
+          assistant_id:
+            customScriptwriter || processEnv.ASSISTANT_SCRIPTWRITER_ID,
           instruction:
             "Create a script for a YouTube Short video, with 'title', 'description', 'script' and 'tags', including #shorts, IN JSON FORMAT for: ",
           question: "🎥 What is the video about?",
