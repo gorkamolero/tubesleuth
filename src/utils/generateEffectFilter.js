@@ -1,28 +1,5 @@
-export function generateEffectFilterLegacy({ effect }) {
-  let zoomDirection;
-
-  switch (effect) {
-    case "ZoomIn":
-    case "ZoomOut":
-      zoomDirection = "in";
-      break;
-    case "PanLeft":
-    case "PanRight":
-      zoomDirection = "right";
-      break;
-    case "PanUp":
-    case "PanDown":
-      zoomDirection = "left";
-      break;
-    default:
-      zoomDirection = null;
-  }
-
-  return {
-    zoomDirection: zoomDirection,
-    zoomAmount: 0.1,
-  };
-}
+const filterMultiplier = 1.2;
+const progressMultiplier = 0.05;
 
 export function generateEffectFilter({
   effect,
@@ -39,23 +16,27 @@ export function generateEffectFilter({
 
   switch (effect) {
     case "ZoomIn":
-      transform = `scale(${Math.min(1.1, 1 + progress * 0.1)})`; // Caps the maximum scale at 1.1
+      // Adjust the maximum scale value and progress multiplier for a gentler zoom
+      transform = `scale(${1 + progress * progressMultiplier})`; // More subtle zoom: ;
       break;
     case "ZoomOut":
-      transform = `scale(${Math.max(1, 1.1 - progress * 0.1)})`; // Ensures scale does not go below 1
+      // Ensure scale gently zooms out without going below the original size
+      transform = `scale(${Math.max(1, filterMultiplier - progress * progressMultiplier)})`; // More subtle zoom out
       break;
     case "PanLeft":
     case "PanRight":
-      const translateX = Math.min(10, progress * 10); // Caps the maximum translateX at 10%
-      transform = `translateX(${effect === "PanLeft" ? -translateX : translateX}%) scale(1.2)`;
+      const translateX = Math.min(10, progress * 10); // Keep translation adjustment
+      // Apply a more subtle scale during pan if needed
+      transform = `translateX(${effect === "PanLeft" ? -translateX : translateX}%) scale(filterMultiplier)`;
       break;
     case "PanUp":
     case "PanDown":
-      const translateY = Math.min(10, progress * 10); // Caps the maximum translateY at 10%
-      transform = `translateY(${effect === "PanUp" ? -translateY : translateY}%) scale(1.2)`;
+      const translateY = Math.min(10, progress * 10); // Keep translation adjustment
+      // Apply a more subtle scale during pan if needed
+      transform = `translateY(${effect === "PanUp" ? -translateY : translateY}%) scale(filterMultiplier)`;
       break;
     default:
-      transform = "scale(1)";
+      transform = "scale(1)"; // Default case ensures no scaling if effect is not recognized
   }
 
   return {
