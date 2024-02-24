@@ -30,9 +30,8 @@ async function createVoiceover({
     __dirname,
     `../../public/assets/video-${video}-voiceover.mp3`,
   );
-  // Ensure the directory exists
-  const dir = path.dirname(tempFile);
-  await fs.promises.mkdir(dir, { recursive: true });
+
+  /*
 
   let voiceover = readSingleFile({ entry, property: "voiceover" });
 
@@ -52,15 +51,29 @@ async function createVoiceover({
         input: script,
       });
 
-      const arrayBuffer = await mp3Response.arrayBuffer();
+  */
 
-      const buffer = Buffer.from(arrayBuffer);
-      voiceover = buffer;
-    } catch (error) {
-      console.error("Error in text-to-speech conversion:", error);
+  let voiceover = null;
+  // Ensure the directory exists
+  const dir = path.dirname(tempFile);
+  await fs.promises.mkdir(dir, { recursive: true });
 
-      throw error;
-    }
+  try {
+    // Perform text-to-speech conversion
+    const mp3Response = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: config[channel].voiceModel || "onyx",
+      input: script,
+    });
+
+    const arrayBuffer = await mp3Response.arrayBuffer();
+
+    const buffer = Buffer.from(arrayBuffer);
+    voiceover = buffer;
+  } catch (error) {
+    console.error("Error in text-to-speech conversion:", error);
+
+    throw error;
   }
 
   const duration = getMP3Duration(voiceover);

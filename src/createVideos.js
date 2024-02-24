@@ -74,6 +74,7 @@ const createVideos = async (entry) => {
     message: "🖊 Step 2: Transcribing the audio",
   });
 
+  /*
   const transcriptPath = `src/assets/video-${video}/video-${video}-transcription.json`;
   let transcription = await readJsonFromFile(transcriptPath);
 
@@ -81,6 +82,9 @@ const createVideos = async (entry) => {
     transcription = await transcribeAudio(video, voiceover);
     await writeJsonToFile(transcription, transcriptPath);
   }
+  */
+
+  let transcription = await transcribeAudio(video, voiceover);
 
   t0 = performance.now();
   progressBar.update(40, {
@@ -110,7 +114,7 @@ const createVideos = async (entry) => {
 
     ${customImageMap ? `Images: ${customImageMap}` : ""}
     
-    ${script} : ${JSON.stringify(transcription.segments, replacer)}}`;
+    script : ${JSON.stringify(transcription.segments, replacer)}}`;
 
     imageMap = await promptAssistant({
       assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
