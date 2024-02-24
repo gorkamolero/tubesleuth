@@ -13,7 +13,7 @@ import { config } from "../main.js";
 import { __filename, __dirname } from "../utils/path.js";
 import processEnv from "../utils/env.js";
 
-async function generateImageWithLemonFox({
+export async function generateImageWithLemonFox({
   description,
   retryCount = 3,
   channel,
@@ -30,6 +30,7 @@ async function generateImageWithLemonFox({
         body: JSON.stringify({
           prompt: description,
           negative_prompt: "NEVER USE TEXT",
+          size: "576x1024",
         }),
       },
     );
@@ -61,25 +62,23 @@ async function generateImageWithLemonFox({
   }
 }
 
-async function generateImageWithOpenAI({ description, channel }) {
+export async function generateImageWithOpenAI({ description, channel }) {
+  const channelExtra = channel ? `  ${config[channel].imageStyle}` : "";
   return await openai.images.generate({
     model: "dall-e-3",
-    prompt: `NEVER USE TEXT / ONLY ONE IMAGE / ${config[channel].imageStyle} - ${description}`,
+    prompt: `NEVER USE TEXT / ONLY ONE IMAGE / ${channelExtra} - ${description}`,
     n: 1,
     size: "1024x1792",
     response_format: "b64_json",
   });
 }
 
-async function generateAndUploadImage({
-  video,
-  description,
-  index,
-  lemon = false,
-  channel,
-}) {
+async function generateAndUploadImage({ video, description, index, channel }) {
   try {
+    const channelImageModel = config[channel]?.imageModel || "lemonfox";
     const customPhotographer = config[channel]?.customPhotographer;
+
+    const lemon = channelImageModel === "lemonfox";
 
     let url;
     const trueDescription = await promptAssistant({
@@ -133,7 +132,7 @@ async function generateAndUploadImage({
   } catch (error) {
     // if error.code content_policy_violation, regenerate with adjusted prompt
     if (error.code === "content_policy_violation") {
-      let safePrompt = await regenerateSafePrompt(description);
+      let safePrompt = await regenerateSafePrompt(trueDescription);
 
       return generateAndUploadImage(video, safePrompt, index);
     }

@@ -152,6 +152,10 @@ const loadConfig = async () => {
       ? entry.properties.imageStyle.rich_text[0].plain_text
       : "";
 
+    const imageModel = entry.properties.imageModel.rich_text.length
+      ? entry.properties.imageModel.rich_text[0].plain_text
+      : "";
+
     const customScriptwriter = entry.properties.customScriptwriter.rich_text
       .length
       ? entry.properties.customScriptwriter.rich_text[0].plain_text
@@ -167,6 +171,7 @@ const loadConfig = async () => {
       cta,
       styleInstructions,
       voiceModel,
+      imageModel,
       imageStyle,
       customScriptwriter,
       customPhotographer,

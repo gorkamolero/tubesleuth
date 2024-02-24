@@ -87,13 +87,34 @@ const createVideos = async (entry) => {
     message: `🎨 Step 3: Generating images from the transcript`,
   });
 
+  let customImageMap = getRichTextFieldContent({
+    entry,
+    property: "customImageMap",
+  });
+
+  const useCustomImageMap = customImageMap?.length > 100;
+
   let imageMap = readJsonFromNotion({ entry, property: "imageMap" });
-  if (!imageMap || imageMap.length <= 3 || redo) {
+  if (!imageMap || imageMap.length <= 3 || redo || useCustomImageMap) {
+    const noCustomImageMapInstructions =
+      "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ";
+
+    const customImageMapInstructions =
+      "Please map the images provided to the script's key moments of this script and output in JSON format with start, end, id, description, effect. Don't propose new images, use these and ensure they map across the script's duration: ";
+
+    const prompt = `${
+      useCustomImageMap
+        ? customImageMapInstructions
+        : noCustomImageMapInstructions
+    }
+
+    ${customImageMap ? `Images: ${customImageMap}` : ""}
+    
+    ${script} : ${JSON.stringify(transcription.segments, replacer)}}`;
+
     imageMap = await promptAssistant({
       assistant_id: processEnv.ASSISTANT_ARCHITECT_ID,
-      instruction:
-        "Please map images to the key MOMENTS of this script I provide, not necessarily to the segments, and output in JSON format with start, end, id, description, effect: ",
-      prompt: JSON.stringify(transcription.segments, replacer),
+      prompt,
       isJSON: true,
     });
 
@@ -134,7 +155,6 @@ const createVideos = async (entry) => {
               await generateImagesFromDescriptions({
                 video,
                 imageMap,
-                lemon: true,
                 channel,
               }),
           );
