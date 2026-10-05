@@ -1,3 +1,5 @@
+import fs from "fs"
+
 export const loadScript = async (video) => {
   const filePath = `./src/assets/video-${video}/video-${video}-script.json`
   try {

@@ -3,3 +3,12 @@ node_modules/
 .DS_Store
 .vscode/launch.json
 src/config/tubesleuth-firebase-adminsdk-3u6pr-b9a83abb5f.json
+
+# Never commit credentials or local output
+.env
+.env.*
+src/config/client_secret.json
+src/config/client_oauth_token.json
+node_modules/
+src/out/
+.DS_Store

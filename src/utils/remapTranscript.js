@@ -11,3 +11,5 @@ export const remapTranscript = (transcript) => {
     })),
   }
 }
+
+export default remapTranscript
